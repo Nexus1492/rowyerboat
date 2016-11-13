@@ -44,8 +44,8 @@ public class GameMap {
 		
 		switch(id){
 		/*
-		 * Lesser Antilles from 9.5°N to 19°N and 292° to 301°E
-		 * 100 Pixels on-screen resemble approx 110m in real-world°
+		 * Lesser Antilles from 9.5°N to 19.1°N and 292° to 301.1°E
+		 * 100 Pixels on-screen resemble approx 110m in real-world degree
 		 */
 		default:
 		case lesserAntilles:
