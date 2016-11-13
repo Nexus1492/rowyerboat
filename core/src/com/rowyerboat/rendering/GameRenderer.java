@@ -320,6 +320,7 @@ public class GameRenderer {
         Model islandModel = modelLoader.loadModel(Gdx.files.getFileHandle("models/lesserAntillesDemo.g3db", Files.FileType.Internal));
 	    ModelInstance islandInstance = new ModelInstance(islandModel, "all");
 	    islandInstance.transform.setToRotation(1, 0, 0, 90f).scale(1f, 0.5f, 1f);
+	    islandInstances.add(islandInstance);
 	    
         /* not yet implemented properly 
          * will fill the instances array with the proper modelinstances (based on order)
