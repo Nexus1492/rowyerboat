@@ -10,7 +10,7 @@ import com.rowyerboat.helper.Settings;
  * Boat class holding and storing all the information about the boat.
  * Offers utility functions to process current movement and energy usage.
  * 
- * @author Roman
+ * @author Roman Lamsal
  *
  */
 public class Boat {

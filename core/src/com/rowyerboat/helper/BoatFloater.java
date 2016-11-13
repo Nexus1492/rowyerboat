@@ -8,7 +8,7 @@ import com.badlogic.gdx.utils.Array;
 /**
  * utility class to process Gerstner Waves on the cpu; not implemented, as Gerstner Waves are not used anymore
  * 
- * @author Roman
+ * @author Roman Lamsal
  */
 public class BoatFloater {
 	

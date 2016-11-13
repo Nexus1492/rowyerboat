@@ -11,7 +11,6 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.rowyerboat.gameobjects.Boat;
-import com.rowyerboat.gameobjects.Current;
 import com.rowyerboat.gameobjects.Location;
 import com.rowyerboat.helper.AssetLoader;
 import com.rowyerboat.helper.Settings;
@@ -28,12 +27,10 @@ public class GameWorld {
 	private Boat boat;
 	private Location target;
 	private Array<Location> locations;
-	private Array<Current> currents;
 	private Vector2[][] currentGrid;
 	private Rectangle worldRect;
 	
 	private GameMap map;
-	public Vector2 windDir;
 	public float gridDistance;
 	public int width;
 	public int height;
@@ -67,16 +64,12 @@ public class GameWorld {
 		Gdx.app.log("TargetIsland", "" + target.getPos());
 		
 		// Create the currents, one must be always null
-		this.currents = map.getCurrents();
 		this.currentGrid = map.getCurrentGrid();
-		if (currentGrid != null)
-			gridDistance = map.gridDistance;
+		gridDistance = map.gridDistance;
 		
 		worldRect = new Rectangle(0, 0, width, height);
 
 		startRowing = false;
-		// TODO change to map.windDir
-		windDir = new Vector2(1f, 0f).rotate(MathUtils.random.nextFloat() * 20);
 		
 		paddleSplash = AssetLoader.paddleSplash;
 	}
@@ -224,10 +217,6 @@ public class GameWorld {
 	
 	public Rectangle getRect() {
 		return worldRect;
-	}
-	
-	public Array<Current> getCurrents() {
-		return currents;
 	}
 	
 	public void setRenderer(GameRenderer renderer) {

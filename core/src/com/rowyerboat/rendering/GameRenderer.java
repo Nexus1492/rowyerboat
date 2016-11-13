@@ -39,16 +39,16 @@ import com.badlogic.gdx.utils.UBJsonReader;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.rowyerboat.gameobjects.Boat;
-import com.rowyerboat.gameobjects.Current;
 import com.rowyerboat.gameobjects.Location;
 import com.rowyerboat.gameworld.GameWorld;
 import com.rowyerboat.helper.AssetLoader;
 import com.rowyerboat.helper.Settings;
 
 /**
- * Renderer 
+ * Renderer containing and managing all relevant task to render the game to the screen.
+ * Contains a GameUI instance and updates/calls its rendering function.
  * 
- * @author Roman
+ * @author Roman Lamsal
  *
  */
 public class GameRenderer {
@@ -57,7 +57,6 @@ public class GameRenderer {
 	private Boat boat;
 	private Location target;
     private Array<Location> locations;
-	private Array<Current> currents;
 	private Vector2[][] currentGrid;
 	
 	private GameUI gameUI;
@@ -95,6 +94,9 @@ public class GameRenderer {
 
     private ModelBatch modelBatch;
     private SimpleWaterShader waterShader;
+    /** used in the {@link GameRendererOpenGL} version of the game; is now used to switch between
+     * using a FBO (shaderID = 0) or non FBO rendering of the game
+     * */
     private int shaderID;
     
     private Environment environment;
@@ -129,7 +131,6 @@ public class GameRenderer {
         this.locations = world.getLocations();
 		this.boatBox = boat.getHitbox();
 		target.getHitbox();
-		this.currents = world.getCurrents();
 		this.currentGrid = world.getCurrentGrid();
 		MathUtils.random.setSeed(world.getSeed());
         boatDir = boat.getDir();
@@ -177,9 +178,9 @@ public class GameRenderer {
     	staticShaper = new ShapeRenderer();
     	staticShaper.setProjectionMatrix(hudCam.combined);
     	
-    	font = new BitmapFont(false);
+    	font = AssetLoader.font;
 
-		this.gameUI = new GameUI(boat, camera, staticBatch, font);
+		this.gameUI = new GameUI(boat, camera, staticBatch);
 	}
 
 	// ***************************************** RENDER **************************************************
@@ -188,7 +189,6 @@ public class GameRenderer {
 		renderPaddleStop = boat.stopping;
 		renderPaddle = renderPaddleStop || renderPaddleSwing;
 		
-		//Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
     	Gdx.gl.glClear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT);
 		Gdx.gl.glBlendFunc(GL30.GL_SRC_ALPHA, GL30.GL_ONE_MINUS_SRC_ALPHA);
 		
@@ -250,12 +250,6 @@ public class GameRenderer {
 		for (int i = 0; i < islandInstances.size; ++i)
 			modelBatch.render(islandInstances.get(i), environment);
 		modelBatch.end();
-
-    	/*Gdx.gl.glColorMask(false, false, false, false); // Interessant: colorMask ausschalten, der "Deckel" des Bootes wird "fest" gerendert
-		modelBatch.begin(camera);
-		modelBatch.render(boatInstance, environment);
-		modelBatch.end();
-		Gdx.gl.glColorMask(true, true, true, true*/
 		
 
 
@@ -267,10 +261,7 @@ public class GameRenderer {
 			shaper.rect(0, 0, world.width, world.height);
 			shaper.end();
 
-			if (currents != null)
-				debugCurrents();
-			if (currentGrid != null)
-				debugCurrentGrid();
+			debugCurrentGrid();
 			debugHitboxes();
 
 		}
@@ -282,8 +273,6 @@ public class GameRenderer {
 			fboCam.setToOrtho(true);
 			fboCam.update();
 			
-			//fboBatch.setShader(new ShaderProgram(Gdx.files.internal("Shaders/defaultVertex.glsl"),
-			//		Gdx.files.internal("Shaders/grayscaleFragment.glsl")));
 			fboBatch.setProjectionMatrix(fboCam.combined);
 			fboBatch.begin();
 			fboBatch.draw(fbo.getColorBufferTexture(), 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -327,18 +316,11 @@ public class GameRenderer {
         // ********************************** TODO ISLANDS **************************
         
         islandInstances = new Array<ModelInstance>();
-        if (currentGrid != null) {
-	        //DemoModel
-        	Model islandModel = modelLoader.loadModel(Gdx.files.getFileHandle("models/lesserAntillesDemo.g3db", Files.FileType.Internal));
-	        ModelInstance islandInstance = new ModelInstance(islandModel, "all");
-	        islandInstance.transform.setToRotation(1, 0, 0, 90f).scale(1f, 0.5f, 1f);
-	        islandInstances.add(islandInstance);
-        } else if (currents != null) {
-	        islandInstances.add(new ModelInstance(boatScene, "Island"));
-	        islandInstances.get(0).transform.setToScaling(2f, 2f, 2f)
-	        	.rotate(1, 0, 0, 90f)
-	        	.setTranslation(targetPos.x, targetPos.y, 0f);
-        }
+        //DemoModel
+        Model islandModel = modelLoader.loadModel(Gdx.files.getFileHandle("models/lesserAntillesDemo.g3db", Files.FileType.Internal));
+	    ModelInstance islandInstance = new ModelInstance(islandModel, "all");
+	    islandInstance.transform.setToRotation(1, 0, 0, 90f).scale(1f, 0.5f, 1f);
+	    
         /* not yet implemented properly 
          * will fill the instances array with the proper modelinstances (based on order)
          */
@@ -427,11 +409,11 @@ public class GameRenderer {
 	}
 
 	public void dispose() {
-		font.dispose();
 		staticBatch.dispose();
 		shaper.dispose();
 		batch.dispose();
 		staticShaper.dispose();
+		gameUI.dispose();
 	}
 
 	// ********************************** CAMERA **********************************
@@ -548,15 +530,11 @@ public class GameRenderer {
 	private void cameraOrtho() {
 		cameraDirV2.set(boatDir.cpy());
 		
-		//TODO REMOVE
 		cameraPos.set(world.width / 2, world.height / 2, camOrthoDist);
 		cameraLookAt.set(world.width / 2, world.height / 2, 0f);
 		
-		//cameraPos.set(boatMid, 500f);
 		camera.position.set(cameraPos);
-		//cameraLookAt.set(boatMid, 0f);
 		camera.lookAt(cameraLookAt);
-		//camera.up.set(boatDir, 0);
 		camera.up.set(0, 1, 0);
 		camera.update();
 	}
@@ -596,37 +574,8 @@ public class GameRenderer {
 				return vals[this.ordinal() - 2];
 		}
 	}
-	
-	@SuppressWarnings("unused")
-	private Vector3 vec2to3(Vector2 vec) {
-		return vec2to3(vec, 0f);
-	}
-	
-	private Vector3 vec2to3(Vector2 vec, float z) {
-		return new Vector3(vec.x, vec.y, z);
-	}
 
 	// ********************************** DEBUG **********************************
-	private void debugCurrents() {
-		for (int i = 0; i < currents.size; ++i)
-			currents.get(i).draw(shaper);
-		
-		float[] vertices = new float[]{
-				1000, 0,
-				800, 200,
-				500, 300,
-				400, 500,
-				500, 700,
-				700, 700,
-				800, 1000,
-				600, 1500
-			};
-		shaper.begin(ShapeType.Filled);
-		shaper.setColor(Color.MAGENTA);
-		for (int i = 1; i < 16; i+= 2)
-			shaper.circle(vertices[i-1], vertices[i], 5f);
-		shaper.end();
-	}
 	
 	private void debugCurrentGrid() {
 		shaper.begin(ShapeType.Filled);

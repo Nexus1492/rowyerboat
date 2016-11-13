@@ -13,6 +13,12 @@ import com.badlogic.gdx.scenes.scene2d.ui.List;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.FloatArray;
 
+/**
+ * @deprecated
+ * 
+ * @author Roman Lamsal
+ *
+ */
 public class Current {
 	private Vector2 direction;
 	private Polygon outline;
@@ -37,7 +43,7 @@ public class Current {
 		Array<Vector2> vectors = new Array<Vector2>();
 		
 		Vector2 leftRightVec = new Vector2();
-		// TODO direkt isRight
+		// direkt isRight
 		switch (alignment) {
 		case right:
 			leftRightVec.set(-1, 0);
@@ -148,7 +154,7 @@ public class Current {
 		for (int i = 0; i < subCurrents.size; ++i)
 			shaper.polygon(subCurrents.get(i).getDrawableVertices());
 		shaper.setColor(Color.RED);
-		//shaper.polygon(outline.getTransformedVertices()); TODO
+		//shaper.polygon(outline.getTransformedVertices());
 		shaper.end();
 	}
 	

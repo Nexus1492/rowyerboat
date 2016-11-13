@@ -27,7 +27,7 @@ public class GameScreen implements Screen {
 	private boolean doUpdate = false;
 
 	public GameScreen(Game game) {
-		InputReader input = new InputReader();
+		InputReader input = new InputReader(game);
 		InputMultiplexer multi = new InputMultiplexer();
 		multi.addProcessor(input.ges);
 		multi.addProcessor(input);

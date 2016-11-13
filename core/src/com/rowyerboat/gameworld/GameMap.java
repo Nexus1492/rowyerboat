@@ -6,23 +6,16 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
-import com.rowyerboat.gameobjects.Current;
-import com.rowyerboat.gameobjects.Island;
 import com.rowyerboat.gameobjects.Location;
-import com.rowyerboat.gameobjects.Current.Alignment;
 import com.rowyerboat.helper.CSVModifier;
 import com.rowyerboat.helper.SVGReader;
 import com.rowyerboat.helper.Settings;
-import com.rowyerboat.scientific.Transverter;
 
 public class GameMap {
 	public MapID ID;
-	
-	private Vector2 windDir;
 
 	public Array<Location> islands;
 	
-	private Array<Current> currents;
 	private Vector2[][] currentGrid;
 	//private Array<Obstacle> obstacles;
 	
@@ -34,7 +27,7 @@ public class GameMap {
 	private long seed;
 	
 	public static enum MapID {
-		lesserAntilles, Random, withCurrent, testCase;
+		lesserAntilles;
 	}
 	
 	// Specific Map by ID
@@ -42,9 +35,6 @@ public class GameMap {
 		this.seed = seed;
 		MathUtils.random.setSeed(seed);
 		islands = new Array<Location>();
-		float[] vertices;
-		
-		Vector2 targetPos = new Vector2();
 
 		this.gridDistance = 100f;
 		float vMin = 9.5f,
@@ -57,6 +47,7 @@ public class GameMap {
 		 * Lesser Antilles from 9.5°N to 19°N and 292° to 301°E
 		 * 100 Pixels on-screen resemble approx 110m in real-world°
 		 */
+		default:
 		case lesserAntilles:
 			Settings.boatScale = 0.1f;
 			
@@ -111,107 +102,7 @@ public class GameMap {
 			islands = SVGReader.islands;
 			
 			break;
-		
-		case Random:
-			randomGameMap(4000, 3000);
-			islands.get(0).isConvex = true;
-			break;
-		
-		case withCurrent:
-			this.width = 2000;
-			this.height = 1500;
-			worldRect = new Rectangle(0, 0, width, height);
-			targetPos = new Vector2(width - 200f, height - 200f);
-			Settings.initialBoatPos.set(100f, 100f);
-			Settings.initialBoatDir.set(targetPos.cpy().sub(Settings.initialBoatPos));
-			currents = new Array<Current>();
-			vertices = new float[]{
-				2000, 800,
-				1500, 900,
-				1200, 1000,
-				1000, 1200,
-				900, 1500
-			};
-			currents.add(new Current(vertices, 200f, Alignment.right, 1.30f));
-			islands.add(new Island(targetPos, 160));
-			islands.get(0).isConvex = true;
-			break;
-			
-		case testCase:
-			this.width = 2000;
-			this.height = 1500;
-			worldRect = new Rectangle(0, 0, width, height);
-			targetPos = new Vector2(width - 200f, height - 200f);
-			Settings.initialBoatPos.set(100f, 100f);
-			Settings.initialBoatDir.set(targetPos.cpy().sub(Settings.initialBoatPos));
-			currents = new Array<Current>();
-			vertices = new float[]{
-				2000, 800,
-				1500, 900,
-				1200, 1000,
-				1000, 1200,
-				900, 1500
-			};
-			currents.add(new Current(vertices, 400f, Alignment.right, 0.80f));
-			vertices = new float[]{
-				1000, 0,
-				800, 200,
-				500, 300,
-				400, 500,
-				500, 700,
-				700, 700,
-				800, 1000,
-				600, 1500
-			};
-			currents.add(new Current(vertices, 400f, Alignment.bottom, 0.70f));
-			vertices = new float[]{
-					2000, 200,
-					1700, 500,
-					1200, 800,
-					800, 1000
-			};
-			currents.add(new Current(vertices, 300f, Alignment.bottom, 2f));
-			islands.add(new Island(targetPos, 160));
-			islands.get(0).isConvex = true;
-			break;
 		}
-	}
-	
-	// RandomMap + randomTargetPos generator
-	public void randomGameMap(int width, int height) {
-		this.width = width;
-		this.height = height;
-		worldRect = new Rectangle(0, 0, width, height);
-		Settings.initialBoatPos.set(MathUtils.random.nextFloat() * width, MathUtils.random.nextFloat()*height);
-		islands.add(new Island(randomTargetPos(MathUtils.random.nextFloat() * 2100 + 1500), 160));
-		currents = new Array<Current>();
-		windDir = new Vector2(MathUtils.random.nextFloat() - 0.5f,
-				MathUtils.random.nextFloat() - 0.5f);
-		windDir.nor();
-	}
-	
-	// vec := targetPos
-	private Vector2 randomTargetPos(float dist) {
-		Vector2 vec = new Vector2();
-		Vector2 dirVec = new Vector2();
-		boolean succes = false;
-		for (int i = 0; i < 100 && !succes; ++i){
-			dirVec.set(MathUtils.random.nextFloat()*2 - 1,
-				MathUtils.random.nextFloat()*2 - 1);
-			vec = dirVec.cpy().setLength(dist).add(Settings.initialBoatPos);
-			if (worldRect.contains(vec) && vec.dst(Settings.initialBoatPos) > 1500) succes = true;
-			
-			if (!succes && i == 99) {
-				Settings.initialBoatPos = new Vector2(MathUtils.random.nextFloat() * width, MathUtils.random.nextFloat()*height);
-				i = 0;
-			}
-		}
-		Settings.initialBoatDir = new Vector2(dirVec);
-		return vec;
-	}
-	
-	public Array<Current> getCurrents() {
-		return currents;
 	}
 	
 	public Vector2[][] getCurrentGrid() {

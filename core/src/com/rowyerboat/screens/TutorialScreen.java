@@ -31,6 +31,12 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.rowyerboat.helper.AssetLoader;
 import com.rowyerboat.helper.Settings;
 
+/**
+ * Simple text-based tutorial following a certain flow to explain the UI.
+ * 
+ * @author Roman Lamsal
+ *
+ */
 public class TutorialScreen implements Screen {
 	Game game;
 	Screen lastScreen;
@@ -183,19 +189,16 @@ public class TutorialScreen implements Screen {
 
 	@Override
 	public void pause() {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void resume() {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void hide() {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -207,7 +210,6 @@ public class TutorialScreen implements Screen {
 	
 	@Override
 	public void show() {
-		// TODO Auto-generated method stub
 
 	}
 

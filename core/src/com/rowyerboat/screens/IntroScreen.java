@@ -23,6 +23,13 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.rowyerboat.helper.AssetLoader;
 import com.rowyerboat.helper.Settings;
 
+/**
+ * Is called everytime the game is started.
+ * Upon the first start of the game, the {@link TutorialScreen} is displayed.
+ * 
+ * @author Roman Lamsal
+ *
+ */
 public class IntroScreen implements Screen {
 	Game game;
 	
@@ -117,7 +124,7 @@ public class IntroScreen implements Screen {
 	public class MyTextInputListener implements TextInputListener {
 		@Override
 		public void input(String text) {
-			if (text.equals("nono"))
+			if (text.equals(""))
 				canceled();
 			else {
 				Gdx.app.log("UserID", text);

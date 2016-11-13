@@ -13,7 +13,7 @@ import com.badlogic.gdx.math.Vector3;
  * Helperclass to store and process a simplistic water shader
  * which alternates between three different textures to simulate ocean movement
  * 
- * @author Roman
+ * @author Roman Lamsal
  *
  */
 public class SimpleWaterShader implements Shader {

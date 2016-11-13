@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL30;
@@ -26,7 +27,16 @@ import com.rowyerboat.helper.AssetLoader;
 import com.rowyerboat.helper.Settings;
 import com.rowyerboat.scientific.Transverter;
 
-
+/**
+ * Screen displaying the world map.
+ * Handles the logic to display certain shapes on the map, like the boat's path.
+ * Temporarily unbinds all controls in order to avoid complications.
+ * Pressing a button/touching the screen resets the map back to its former {@link InputProcessor}
+ * and {@link Screen}
+ * 
+ * @author Roman Lamsal
+ * 
+ */
 public class WorldMapScreen implements Screen {
 	SpriteBatch batch;
 	ShapeRenderer shaper;
@@ -36,6 +46,9 @@ public class WorldMapScreen implements Screen {
 	
 	Game game;
 	Screen lastScreen;
+	InputProcessor lastInput;
+	
+	float time = 0;
 	
 	final Texture worldMap;
 	final Texture background;
@@ -62,6 +75,8 @@ public class WorldMapScreen implements Screen {
 		
 		game = Settings.game;
 		lastScreen = s;
+		lastInput = Gdx.input.getInputProcessor();
+		Gdx.input.setInputProcessor(null);
 		
 		worldMap = AssetLoader.mapTex;
 		background = AssetLoader.mapBackground;
@@ -87,7 +102,6 @@ public class WorldMapScreen implements Screen {
 		
 		// unbind controls
 		if (isWin != null) {
-			Gdx.input.setInputProcessor(null);
 			Settings.tracker.postPoints();
 		}
 		
@@ -100,14 +114,18 @@ public class WorldMapScreen implements Screen {
 
 	@Override
 	public void render(float delta) {
+		time += delta;
+		
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL30.GL_COLOR_BUFFER_BIT);
 
 		stage.act();
 		stage.draw();
 
-		if (Gdx.input.isTouched())
+		if (time > 1 && (Gdx.input.isTouched() || Gdx.input.isKeyJustPressed(-1))) {
+			Gdx.input.setInputProcessor(lastInput);
 			game.setScreen(lastScreen);
+		}
 		
 		Array<Vector2> pts = Settings.tracker.getPoints();
 		Vector2 vec = Transverter.gameToTexture(pts.get(0), width, height).add(x, y), vec2;
@@ -197,25 +215,21 @@ public class WorldMapScreen implements Screen {
 
 	@Override
 	public void pause() {
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void resume() {
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void hide() {
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void dispose() {
-		// TODO Auto-generated method stub
 		
 	}
 

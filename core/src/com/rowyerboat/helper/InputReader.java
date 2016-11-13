@@ -2,7 +2,9 @@ package com.rowyerboat.helper;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.Application.ApplicationType;
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.input.GestureDetector.GestureListener;
 import com.badlogic.gdx.math.Vector2;
@@ -12,8 +14,17 @@ import com.rowyerboat.gameworld.*;
 import com.rowyerboat.rendering.GameRenderer;
 import com.rowyerboat.screens.WorldMapScreen;
 
+/**
+ * Processes all the game controls; uses a instantiates a {@link GestureDetector} to 
+ * implement gesture detection.
+ * 
+ * @author Roman Lamsal
+ *
+ */
 public class InputReader implements InputProcessor {
 	public GestureDetector ges;
+	
+	private Game game;
 	
 	private GameWorld world;
 	private GameRenderer renderer;
@@ -23,7 +34,9 @@ public class InputReader implements InputProcessor {
 	
 	boolean ctrl = false;
 	
-	public InputReader() {
+	public InputReader(Game g) {
+		game = g;
+		
 		ges = new GestureDetector(new MyGestureListener());
 		ges.setLongPressSeconds(0.1f);
 	}
@@ -90,6 +103,10 @@ public class InputReader implements InputProcessor {
 		
 		case(Keys.H):
 			Settings.hud = !Settings.hud;
+			return true;
+			
+		case(Keys.M):
+			game.setScreen(new WorldMapScreen(game.getScreen()));
 			return true;
 			
 		case (Keys.F1):
@@ -224,7 +241,6 @@ public class InputReader implements InputProcessor {
 
 		@Override
 		public boolean tap(float x, float y, int count, int button) {
-			// TODO Auto-generated method stub
 			return true;
 		}
 
@@ -257,25 +273,21 @@ public class InputReader implements InputProcessor {
 
 		@Override
 		public boolean pan(float x, float y, float deltaX, float deltaY) {
-			// TODO Auto-generated method stub
 			return false;
 		}
 
 		@Override
 		public boolean panStop(float x, float y, int pointer, int button) {
-			// TODO Auto-generated method stub
 			return false;
 		}
 
 		@Override
 		public boolean zoom(float initialDistance, float distance) {
-			// TODO Auto-generated method stub
 			return false;
 		}
 
 		@Override
 		public boolean pinch(Vector2 initialPointer1, Vector2 initialPointer2, Vector2 pointer1, Vector2 pointer2) {
-			// TODO Auto-generated method stub
 			return false;
 		}
 	}

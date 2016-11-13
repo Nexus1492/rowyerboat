@@ -21,9 +21,10 @@ import com.rowyerboat.helper.Settings;
 
 /**
  * Class to track the movement of a boat on a given map via its path.
- * Offer utility function to output an SVG with marked path (TBA).
+ * Also responsible for POSTing the boatlogs to the server.
+ * Offer utility function to output an SVG with marked path (TBI).
  * 
- * @author Roman
+ * @author Roman Lamsal
  *
  */
 public class Tracker {

@@ -56,11 +56,18 @@ public class GameUI {
 	private Vector2 boatToTarget;
 	private Vector2 cameraDirV2;
 
-	public GameUI(Boat b, Camera c, SpriteBatch s, BitmapFont f) {
+	/**
+	 * 
+	 * @param b {@link Boat} instance being referenced
+	 * @param c {@link Camera} used for calculating relative directions, not for the stage being used
+	 * @param s {@link SpriteBatch} for the HUD (at best the same as the parent's SpriteBatch)
+	 * @param f {@link Font} used for the HUD
+	 */
+	public GameUI(Boat b, Camera c, SpriteBatch s) {
 		boat = b;
 		camera3D = c;
 		batch = s;
-		font = f;
+		font = AssetLoader.font;
 		
 		arrowImage = AssetLoader.arrow;
 		circularArrowImage = AssetLoader.circularArrowImage;
@@ -136,12 +143,14 @@ public class GameUI {
 	
 
 	// ********************************** UTILITY **********************************
+	/** Convenience method to ensure clean ordering of outputted strings from top-left to bottom-left */
 	private void topDownHUD(String... strings) {
 		for (int i = 0; i < strings.length; ++i) {
 			font.draw(batch, strings[i], 5, viewport.getWorldHeight() - 20 * i - 5);
 		}
 	}
-	
+
+	/** Convenience method to ensure clean ordering of outputted strings from bottom-left to top-left */
 	private void bottomUpHUD(String... strings) {
 		for (int i = 0; i < strings.length; ++i) {
 			font.draw(batch, strings[i], 5, 20 * i);
@@ -149,7 +158,6 @@ public class GameUI {
 	}
 	
 	public void createUI() {
-		
 		int numBtns = 1, btnSize = 60;
 		Skin skin = new Skin();
 		Pixmap pixmap = new Pixmap(btnSize, btnSize, Format.RGBA8888);
@@ -298,5 +306,9 @@ public class GameUI {
 	
 	public void resize(int width, int height) {
 		viewport.update(width, height);
+	}
+
+	public void dispose() {
+		stage.dispose();
 	}
 }

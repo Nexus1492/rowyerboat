@@ -2,6 +2,12 @@ package com.rowyerboat.scientific;
 
 import com.badlogic.gdx.math.Vector2;
 
+/** 
+ * Class to calculate various units to other relevant units.
+ * 
+ * @author Roman Lamsal
+ *
+ */
 public abstract class Transverter {
 	/** texture width in pixels FIXED */
 	static float texWidth = 599f;//640f;
