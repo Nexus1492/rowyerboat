@@ -40,6 +40,8 @@ public class GameWorld {
 	
 	private Array<String> targetsHit;
 	
+	private Vector2[] resetPosDir;
+	
 	public GameWorld(GameScreen screen) {
 		map = Settings.map;
 		width = map.width;
@@ -50,6 +52,7 @@ public class GameWorld {
 		this.boat = new Boat(this, Settings.initialBoatPos);
 		this.boat.setDir(Settings.initialBoatDir);
 		this.boat.setScale(Settings.boatScale);
+		this.resetPosDir = new Vector2[]{Settings.initialBoatPos, Settings.initialBoatDir};
 		
 		this.locations = new Array<Location>();
 		this.locations.addAll(map.islands);
@@ -99,11 +102,14 @@ public class GameWorld {
 
 	private void checkForNextTarget() {
 		Location nextT = Settings.mission.nextTarget();
-		if (nextT == null)
+		if (nextT == null) { // last target reached
+			Settings.tracker.targetReached();
 			gameEnd(true);
-		else {
-			target = nextT;
-			System.out.println("Target switched to: " + target.name);
+		} else { // only set up next target
+			target = nextT; 
+			resetPosDir = new Vector2[]{boat.getPos(), boat.getDir()};
+			Gdx.app.log("Target switched to", target.name);
+			Settings.tracker.targetReached();
 		}
 	}
 
@@ -160,6 +166,14 @@ public class GameWorld {
 			}
 		}
 		return null;
+	}
+
+	public void resetBoat() {
+		this.boat = new Boat(this, resetPosDir[0]);
+		this.boat.setDir(resetPosDir[1]);
+		this.boat.setScale(Settings.boatScale);
+		renderer.resetBoat(this.boat);
+		Settings.tracker.resetBoat(this.boat);
 	}
 	
 	public void boatLeftSwing() {

@@ -31,7 +31,7 @@ public class Location {
 	}
 	
 	public Vector2 getPos() {
-		return pos;
+		return pos.cpy();
 	}
 	
 	public Polygon getHitbox() {

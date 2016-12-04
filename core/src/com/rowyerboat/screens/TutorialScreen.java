@@ -2,6 +2,7 @@ package com.rowyerboat.screens;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL30;
@@ -85,6 +86,10 @@ public class TutorialScreen implements Screen {
 		
 		if (Gdx.input.justTouched()) {
 			state++;
+			updateBtn();
+		}
+		if (Gdx.input.isKeyJustPressed(Keys.BACK)) {
+			state--;
 			updateBtn();
 		}
 	}

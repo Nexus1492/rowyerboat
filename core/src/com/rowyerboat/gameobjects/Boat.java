@@ -280,11 +280,11 @@ public class Boat {
 	}
 	
 	public Vector2 getPos() {
-		return midPoint;
+		return midPoint.cpy();
 	}
 	
 	public Vector2 getMid() {
-		return midPoint;
+		return midPoint.cpy();
 	}
 	
 	public float getRotation() {
@@ -370,5 +370,9 @@ public class Boat {
 
 	public float getEnergy() {
 		return energy;
+	}
+	
+	public void resetBoat(Vector2 pos) {
+		new Boat(world, pos);
 	}
 }

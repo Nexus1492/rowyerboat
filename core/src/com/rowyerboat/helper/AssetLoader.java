@@ -11,6 +11,8 @@ public class AssetLoader {
 	public static Texture noise0, noise1, noise2, noise3;
 	public static Texture arrowImage, circularArrowImage;
 	
+	public static Texture tick, tickTransp;
+	
 	public static Texture mapTex, mapBackground;
 	
 	public static Texture nexusLogo, titleScreen;
@@ -29,6 +31,9 @@ public class AssetLoader {
 		
 		arrowImage = new Texture(Gdx.files.internal("arrow.png"));
 		circularArrowImage = new Texture(Gdx.files.internal("circularArrow.png"));
+		
+		tick = new Texture(Gdx.files.internal("tick.png"));
+		tickTransp = new Texture(Gdx.files.internal("tick_transp.png"));
 		
 		mapTex = new Texture(Gdx.files.internal("LesserAntilles.png"));
 		mapBackground = new Texture(Gdx.files.internal("map_background.png"));
@@ -53,6 +58,9 @@ public class AssetLoader {
 		
 		arrowImage.dispose();
 		circularArrowImage.dispose();
+		
+		tick.dispose();
+		tickTransp.dispose();
 		
 		mapTex.dispose();
 		mapBackground.dispose();

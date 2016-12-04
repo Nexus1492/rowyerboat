@@ -1,6 +1,5 @@
 package com.rowyerboat.scientific;
 
-import java.io.InputStream;
 import java.util.Date;
 import java.util.HashMap;
 
@@ -13,6 +12,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.net.HttpParametersUtils;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.TimeUtils;
@@ -44,6 +44,9 @@ public class Tracker {
 	public float interval = 0.2f;
 	public boolean fixedInterval = true;
 	
+	public Vector3[] targetsReached;
+	public int targetsReachedPointer = 0;
+	
 	public boolean isWin;
 	
 	public Tracker(Boat boat) {
@@ -54,6 +57,11 @@ public class Tracker {
 		times.add(0f);
 		
 		points.add(boat.getPos().cpy());
+		
+		targetsReached = new Vector3[Settings.mission.targetSize()];
+		for (int i = 0; i < Settings.mission.targetSize(); ++i) {
+			targetsReached[i] = new Vector3(Settings.mission.getTargets().get(i).getPos(), 0);
+		}
 	}
 	
 	public void update(float delta) {
@@ -70,16 +78,8 @@ public class Tracker {
 		}
 	}
 	
-	public void render(ShapeRenderer batch) {
-		Vector2 prev = points.first();
-		batch.begin(ShapeType.Filled);
-		batch.setColor(Color.BLACK);
-		for(int i = 1; i < points.size; ++i) {
-			batch.circle(points.get(i).x, points.get(i).y, 5f);
-			batch.line(prev, points.get(i));
-			prev = points.get(i);
-		}
-		batch.end();
+	public void targetReached() {
+		targetsReached[targetsReachedPointer++] = new Vector3(boat.getPos(), 1);
 	}
 	
 	public Array<Vector2> getPoints() {
@@ -87,7 +87,7 @@ public class Tracker {
 	}
 	
 	public void postPoints() {
-		String urlString = "http://www.j-c-a.de/boatlog.php";// urlString = "http://httpbin.org/post";
+		String urlString = "http://www.nexus1492.eu/boatlogs/boatlog.php";// urlString = "http://httpbin.org/post";
 		String content = "";
 		for (int i = 0; i < points.size; ++i) {
 			content += times.get(i).toString() + ", ";
@@ -124,5 +124,9 @@ public class Tracker {
 			}
 			
 		});
+	}
+
+	public void resetBoat(Boat boat) {
+		this.boat = boat;
 	}
 }

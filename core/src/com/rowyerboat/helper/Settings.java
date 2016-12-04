@@ -68,11 +68,7 @@ public class Settings {
 		
 		checkVersion();
 		
-		userID = userData.getString("userID", null);
-		if (userData.getString("userIDoffset", null) == null) {
-			userData.putString("userIDoffset", Integer.toString(MathUtils.random.nextInt()));
-			userData.flush();
-		}
+		userID = userData.getString("userID", "");
 		
 		useEnergy = lastSession.getBoolean("lastMissionEnergy", false);
 		
@@ -90,7 +86,7 @@ public class Settings {
 	
 	private static void checkVersion() {
 		float version = userData.getFloat("version", 1.00f);
-		float curr_version = 1.02f;
+		float curr_version = 1.03f;
 		if (version < 1.01f) {
 			userData.remove("lastMission");
 			userData.putBoolean("lastMissionEnergy", false);
@@ -102,9 +98,29 @@ public class Settings {
 			lastSession.putBoolean("lastMissionEnergy", false);
 			updateMission(new Mission(MissionID.Pottery));
 		}
+		if (version < 1.03f) {
+			// Bugfix: Highscores are not properly saved (only for "Mission01ON"/"Mission01OFF")
+			highscores.putFloat(Mission.MissionID.Pottery + "ON",
+					highscores.getFloat("Mission01ON", Float.MAX_VALUE));
+			highscores.putFloat(Mission.MissionID.Pottery + "OFF",
+					highscores.getFloat("Mission01OFF", Float.MAX_VALUE));
+			highscores.putFloat(Mission.MissionID.JaguarTeeth + "ON", Float.MAX_VALUE);
+			highscores.putFloat(Mission.MissionID.JaguarTeeth + "OFF", Float.MAX_VALUE);
+			highscores.remove("Mission01ON");
+			highscores.remove("Mission01OFF");
+			
+			if (userData.getString("userIDoffset", null) == null) {
+				int offset = Math.abs(MathUtils.random.nextInt());
+				userData.putString("userIDoffset", "-" + Integer.toString(offset));
+				userData.flush();
+			}
+			if (userData.getString("userIDoffset").charAt(0) != '-')
+				userData.putString("userIDoffset", "-" + userData.getString("userIDoffset"));
+		}
 		userData.putFloat("version", curr_version);
 		userData.flush();
 		lastSession.flush();
+		highscores.flush();
 	}
 
 	public static void updateEnergy(boolean nrg) {

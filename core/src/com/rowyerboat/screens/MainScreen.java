@@ -75,7 +75,9 @@ public class MainScreen implements Screen {
 		
 		nexusActor = new NexusActor();
 		
-		create();
+		createStage();
+		
+		Gdx.input.setCatchBackKey(true);
 	}
 	
 	public void render (float delta) {
@@ -111,11 +113,16 @@ public class MainScreen implements Screen {
 		stage.draw();
 		stage.act();
 		
-		if (time > threshold)
+		if (time > threshold) {
 			Gdx.input.setInputProcessor(stage);
+			Gdx.input.setCatchBackKey(true);
+		}
+		
+		if (Gdx.input.isKeyJustPressed(Keys.BACK) || Gdx.input.isKeyJustPressed(Keys.BACKSPACE))
+			game.setScreen(new TutorialScreen(game, this));
 	}
-	
-	public void create(){
+
+	public void createStage(){
 		batch = new SpriteBatch();
 		viewport = new FitViewport(Settings.width, Settings.height);
 		stage = new Stage(viewport, batch);

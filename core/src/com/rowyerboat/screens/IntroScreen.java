@@ -64,6 +64,8 @@ public class IntroScreen implements Screen {
 		text.getLabel().setWrap(true);
 		text.setPosition((stage.getWidth() - text.getWidth())/2, (logo.getY() - text.getHeight()));
 		stage.addActor(text);
+		
+		Gdx.input.setCatchBackKey(true);
 	}
 	
 	@Override
@@ -75,7 +77,7 @@ public class IntroScreen implements Screen {
 		case 0: //showDisclaimer
 			stage.draw();
 			if (Gdx.input.justTouched()) state++;
-			if (Gdx.input.justTouched() && Settings.userID != null)
+			if (Gdx.input.justTouched() && !Settings.userID.equals(""))
 				state = 4;
 			break;
 		case 1: //await username
@@ -87,7 +89,8 @@ public class IntroScreen implements Screen {
 			break;
 		case 3: //show tutorial
 			state++;
-			game.setScreen(new TutorialScreen(game, this));
+			if (!Settings.userData.getBoolean("tutorialDisplayed"))
+				game.setScreen(new TutorialScreen(game, this));
 			break;
 		case 4: //switch to game
 			game.setScreen(new MainScreen(game));
@@ -130,6 +133,7 @@ public class IntroScreen implements Screen {
 				Gdx.app.log("UserID", text);
 				Settings.userID = text;
 				Settings.userData.putString("userID", text);
+				Settings.userData.flush();
 				state++;
 			}
 		}

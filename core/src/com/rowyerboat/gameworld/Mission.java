@@ -101,6 +101,10 @@ public class Mission {
 		return !(pointerD >= dangers.size);
 	}
 	
+	public Array<Location> getTargets() {
+		return targets;
+	}
+	
 	public Array<Location> getLocations() {
 		Array<Location> arr = new Array<Location>();
 		arr.addAll(targets);

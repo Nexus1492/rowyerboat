@@ -1,0 +1,22 @@
+Known Bugs:
+    + Highscores
+    + Name can be empty, but not "nono"
+    
+Nice-to-have:
+    + Targets on map
+    - Worldborders
+    - Font too small
+    + Visual feedback when reaching a target
+    - Map-Overview in mission selection
+    + Show tutorial again
+    + Reset position
+    
+Fixed Issues:
+    - Highscores were only saved for one mission, overwriting actual personal records
+    - The username can not be empty
+    - Pressing ENTER will yield no win anymore
+    - Back on Android/Backspace on Desktop
+        - Ingame: will now reset the boat to its position and direction upon reaching the last target
+        - Main Menu: will now show the tutorial again
+    - The map now properly visualizes reached, next and upcoming targets
+    - Ticks displaying number of reached and number of to-be-reached targets

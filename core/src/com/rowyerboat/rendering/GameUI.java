@@ -44,13 +44,15 @@ public class GameUI {
 	private Texture circularArrowImage;
 	private Texture minimapBackground;
 	
+	private Texture tick;
+	
 	private float width;
 	private float height;
 	
 	private float delta;
 	
 	// GameRenderer-related
-	private Boat boat;
+	public Boat boat;
 	private Camera camera3D;
 	private CameraMode cameraMode;
 	private Vector2 boatToTarget;
@@ -71,6 +73,8 @@ public class GameUI {
 		
 		arrowImage = AssetLoader.arrow;
 		circularArrowImage = AssetLoader.circularArrowImage;
+		
+		tick = AssetLoader.tick;
 		
 		viewport = new FitViewport(Settings.width, Settings.height);
 		stage = new Stage(viewport);
@@ -105,7 +109,6 @@ public class GameUI {
 	
 	public void renderHUD(float delta) {
 		cameraMode = Settings.renderer.cameraMode;
-		
 		
 		batch.begin();
 		
@@ -186,7 +189,8 @@ public class GameUI {
 		TextButton hud = new TextButton("H", textButtonStyle);
 		TextButton mapButton = new TextButton("M", textButtonStyle);
 		
-		Actor bars = new Actor() { // BARS
+		// BARS
+		Actor bars = new Actor() {
 			ShapeRenderer shaper;
 			final float width = 300f;
 			final float height = 30f;
@@ -231,6 +235,8 @@ public class GameUI {
 		map.fillCircle(res/2, res/2, 62);
 		minimapBackground = new Texture(map);
 		map.dispose();
+		
+		// Minimap
 		Actor minimap = new Actor() {
 			@Override
 			public void draw(Batch batch, float parentAlpha) {
@@ -254,6 +260,23 @@ public class GameUI {
 			}
 		};
 		
+		Actor ticks = new Actor() {
+			@Override
+			public void draw(Batch batch, float parentAlpha) {
+				int num = Settings.mission.targetSize();
+				for (int i = 0; i < num; ++i) {
+					if (i < Settings.tracker.targetsReachedPointer) {
+						batch.setColor(Color.GREEN);
+						batch.draw(tick, this.getX() + i * tick.getWidth(), this.getY());
+					} else {
+						batch.setColor(Color.WHITE);
+						batch.draw(AssetLoader.tickTransp, this.getX() + i * tick.getWidth(), this.getY());
+					}
+					batch.setColor(Color.WHITE);
+				}
+			}
+		};
+		
 		// define positions
 		zoomIn.setPosition(width - btnSize - 5, height - numBtns++ * (btnSize + 5));
 		zoomOut.setPosition(width - btnSize - 5, height - numBtns++ * (btnSize + 5));
@@ -262,6 +285,8 @@ public class GameUI {
 		mapButton.setPosition(width - btnSize - 5, height - numBtns++ * (btnSize + 5));
 		bars.setPosition(5, viewport.getWorldHeight() - 5);
 		minimap.setPosition(10, 10);
+		ticks.setPosition((stage.getWidth() - Settings.mission.targetSize() * tick.getWidth())/2,
+				viewport.getWorldHeight() - tick.getHeight() - 5);
 		
 		zoomIn.addListener(new InputListener() {
 			public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
@@ -302,6 +327,7 @@ public class GameUI {
 		stage.addActor(mapButton);
 		stage.addActor(minimap);
 		stage.addActor(bars);;
+		stage.addActor(ticks);
 	}
 	
 	public void resize(int width, int height) {

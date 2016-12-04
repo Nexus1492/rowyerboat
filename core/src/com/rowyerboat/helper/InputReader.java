@@ -52,10 +52,6 @@ public class InputReader implements InputProcessor {
 	public boolean keyDown(int keycode) {
 		switch (keycode) {
 		
-		case (Keys.BACKSPACE):
-			Settings.game.setScreen(new WorldMapScreen(Settings.game.getScreen()));
-			return true;
-		
 		case (Keys.PLUS):
 			renderer.islandScale += 0.25f;
 			return true;
@@ -88,7 +84,12 @@ public class InputReader implements InputProcessor {
 			return true;
 		
 		case (Keys.ENTER):
-			world.gameEnd(true);
+			world.gameEnd(false);
+			return true;
+			
+		case (Keys.BACKSPACE):
+		case (Keys.BACK):
+			world.resetBoat();
 			return true;
 			
 		case (Keys.CONTROL_LEFT):

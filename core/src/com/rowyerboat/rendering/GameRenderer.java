@@ -620,4 +620,10 @@ public class GameRenderer {
 	public enum ShaderIDName {
 		choppyWave, simpleWave, flatWave, choppy, choppyFlat, defaultFlat;
 	}
+
+	public void resetBoat(Boat boat) {
+		this.boat = boat;
+		this.cameraDirV2 = boat.getDir();
+		gameUI.boat = boat;
+	}
 }
