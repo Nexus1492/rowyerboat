@@ -74,9 +74,9 @@ public class Settings {
 		
 		// Read out the last Mission
 		mission = new Mission(MissionID.valueOf(lastSession.getString("lastMission",
-				MissionID.Pottery.toString())));
+				MissionID.Pottery.toString()))); // if no last mission is given, set lastMission to POTTERY ACQUISITION
 		
-		firstTime = userData.getBoolean("firstTime", true); firstTime = true;
+		firstTime = userData.getBoolean("firstTime", true);
 		
 		debug = false;
 		hud = false;
@@ -109,12 +109,13 @@ public class Settings {
 			highscores.remove("Mission01ON");
 			highscores.remove("Mission01OFF");
 			
+			// save userIDoffset as negative integer
 			if (userData.getString("userIDoffset", null) == null) {
 				int offset = Math.abs(MathUtils.random.nextInt());
 				userData.putString("userIDoffset", "-" + Integer.toString(offset));
 				userData.flush();
-			}
-			if (userData.getString("userIDoffset").charAt(0) != '-')
+			} // if userIDoffset is already set, make sure it is negative
+			else if (userData.getString("userIDoffset").charAt(0) != '-')
 				userData.putString("userIDoffset", "-" + userData.getString("userIDoffset"));
 		}
 		userData.putFloat("version", curr_version);
