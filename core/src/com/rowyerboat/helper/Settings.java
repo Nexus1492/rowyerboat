@@ -37,7 +37,7 @@ public class Settings {
 	public static boolean hud;
 	public static int shaderID;
 
-	public static float boatScale = 0.5f;
+	public static float boatScale = 0.1f;
 	final public static float speedScale = 25f;
 	
 	// set by map
@@ -81,7 +81,6 @@ public class Settings {
 		debug = false;
 		hud = false;
 		shaderID = 0;
-		boatScale = 0.5f;
 	}
 	
 	private static void checkVersion() {

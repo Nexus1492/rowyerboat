@@ -2,7 +2,9 @@ package com.rowyerboat.gameworld;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.TimeUtils;
 import com.rowyerboat.gameobjects.Location;
+import com.rowyerboat.gameworld.GameMap.MapID;
 import com.rowyerboat.gameworld.Mission.MissionID;
 import com.rowyerboat.helper.Settings;
 import com.rowyerboat.scientific.Transverter;
@@ -49,6 +51,7 @@ public class Mission {
 					new Location("target1", Transverter.textureToGame(new Vector2(447, 372), true)),
 					new Location("target2", Transverter.textureToGame(new Vector2(551, 384), true))
 					);
+			Settings.map = new GameMap(TimeUtils.millis(), MapID.lesserAntilles);
 			break;
 		case Pottery:
 			Settings.initialBoatPos = Transverter.textureToGame(new Vector2(321, 48), true);
@@ -57,9 +60,17 @@ public class Mission {
 			addTargets(new Location("target0", Transverter.textureToGame(new Vector2(210, 33), true)),
 					new Location("target1", Transverter.textureToGame(new Vector2(175, 64), true)),
 					new Location("target2", Transverter.textureToGame(new Vector2(118, 76), true)));
-			description = getDesc(id);
+			Settings.map = new GameMap(TimeUtils.millis(), MapID.lesserAntilles);
 			break;
+		case Placeholder:
+			Settings.initialBoatPos = new Vector2(0, 0);
+			Settings.initialBoatDir = new Vector2(1, 1);
+			name = "Placeholder";
+			addTargets(new Location("target0", new Vector2(1000, 1000)));
+			Settings.map = new GameMap(TimeUtils.millis(), MapID.caribbean);
 		}
+
+		description = getDesc(id);
 	}
 	
 	public void addTargets(Location... locations) {
@@ -143,6 +154,8 @@ public class Mission {
 					+ "On your way back, you should make a stop at Grenada to gather some fresh water "
 					+ "and provisions. Do not stop anywhere else and make sure to keep in mind the strong "
 					+ "currents around the Grenadines.";
+		case Placeholder:
+			return "Test\n\nOn the whole caribbean.";
 		}
 		return null;
 	}

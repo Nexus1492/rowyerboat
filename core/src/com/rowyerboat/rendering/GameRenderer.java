@@ -316,8 +316,18 @@ public class GameRenderer {
         // ********************************** TODO ISLANDS **************************
         
         islandInstances = new Array<ModelInstance>();
-        //DemoModel
-        Model islandModel = modelLoader.loadModel(Gdx.files.getFileHandle("models/lesserAntillesDemo.g3db", Files.FileType.Internal));
+        // Use Model based on map
+        Model islandModel = null;
+        switch(Settings.map.ID) {
+        case lesserAntilles:
+        	islandModel = modelLoader.loadModel(Gdx.files.getFileHandle("models/lesserAntillesDemo.g3db",
+        			Files.FileType.Internal));
+        	break;
+        case caribbean:
+        	islandModel = arrowModel;
+        	break;
+        }
+        
 	    ModelInstance islandInstance = new ModelInstance(islandModel, "all");
 	    islandInstance.transform.setToRotation(1, 0, 0, 90f).scale(1f, 0.5f, 1f);
 	    islandInstances.add(islandInstance);

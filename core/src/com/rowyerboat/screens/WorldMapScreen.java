@@ -105,7 +105,7 @@ public class WorldMapScreen implements Screen {
 		}
 		
 		if (isWin != null) {
-			Settings.tracker.postPoints();
+			//Settings.tracker.postPoints(); TODO
 		}
 
 		createStage();

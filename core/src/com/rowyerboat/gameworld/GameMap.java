@@ -27,7 +27,7 @@ public class GameMap {
 	private long seed;
 	
 	public static enum MapID {
-		lesserAntilles;
+		lesserAntilles, caribbean;
 	}
 	
 	// Specific Map by ID
@@ -37,10 +37,9 @@ public class GameMap {
 		islands = new Array<Location>();
 
 		this.gridDistance = 100f;
-		float vMin = 9.5f,
-				vMax = 19.1f,
-				uMin = 292f,
-				uMax = 301.1f;
+		float vMin, vMax, uMin,	uMax;
+		
+		ID = id;
 		
 		switch(id){
 		/*
@@ -50,48 +49,13 @@ public class GameMap {
 		default:
 		case lesserAntilles:
 			Settings.boatScale = 0.1f;
-			
-			int widthNumber  = (int) ((uMax - uMin) * 10 + 1);
-			int heightNumber = (int) ((vMax - vMin) * 10 + 1);
-			
-			this.width = (int) (widthNumber * gridDistance - gridDistance);
-			this.height = (int) (heightNumber * gridDistance - gridDistance);
-			Gdx.app.log("World Meassures", width + " x " + height);
-			worldRect = new Rectangle(0, 0, width, height);
-			
-			currentGrid = new Vector2[widthNumber][heightNumber];
-			
-			String data = "waterdata/05-13-2016_LA.csv";
-			FileHandle clean_data = Gdx.files.local(data + ".clean");
-			if (!clean_data.exists()) {
-				try {
-					CSVModifier csvmod = new CSVModifier(Gdx.files.local(data));
-					csvmod.cleanupCSV();
-					clean_data = Gdx.files.local(data + ".clean");
-				}
-				catch (Exception e) {
-					System.out.println(e + "\nUsing backup data from 05-13-2016.");
-					clean_data = Gdx.files.internal("05-13-2016_LA.csv.clean");
-				}
-			}
 
-			Gdx.app.log("CurrentGrid", "Start creating");
-			String[] csvData = clean_data.readString().split("\n");
+			vMin = 9.5f;
+			vMax = 19.1f;
+			uMin = 292f;
+			uMax = 301.1f;
 			
-			for (int k = 0; k < csvData.length; ++k) {
-				String[] row = csvData[k].split(",");
-				
-				int i = (int)(Float.parseFloat(row[0]) * 10f - uMin * 10f),
-						j = (int)(Float.parseFloat(row[1]) * 10f - vMin * 10f);
-				Vector2 vec = new Vector2(Float.parseFloat(row[2]), Float.parseFloat(row[3]));
-				
-
-				if (currentGrid[i][j] != null)
-					Gdx.app.log("CurrentGrid", "ERROR: Doubled vector");
-
-				currentGrid[i][j] = vec;
-			}
-			Gdx.app.log("CurrentGrid", "Done creating");
+			createGrid("05-13-2016_LA.csv", vMin, vMax, uMin, uMax);
 
 			Gdx.app.log("Map", "Reading SVG");
 			try {
@@ -102,7 +66,68 @@ public class GameMap {
 			islands = SVGReader.islands;
 			
 			break;
+
+		case caribbean:
+			Settings.boatScale = 0.1f;
+
+			vMin = 9.5f;
+			vMax = 19.1f;
+			uMin = 292f;
+			uMax = 301.1f;
+			
+			this.width = 1000;
+			this.height = 1000;
+			
+			Vector2 vec = new Vector2(0.1f, 0);
+			currentGrid = new Vector2[][]{{vec, vec}, {vec, vec}};
+			
+			//createGrid("05-13-2016_LA.csv", vMin, vMax, uMin, uMax);
+			break;
 		}
+	}
+
+	private void createGrid(String data, float vMin, float vMax, float uMin, float uMax) {
+		int widthNumber  = (int) ((uMax - uMin) * 10 + 1);
+		int heightNumber = (int) ((vMax - vMin) * 10 + 1);
+		
+		this.width = (int) (widthNumber * gridDistance - gridDistance);
+		this.height = (int) (heightNumber * gridDistance - gridDistance);
+		Gdx.app.log("World Meassures", width + " x " + height);
+		worldRect = new Rectangle(0, 0, width, height);
+		
+		currentGrid = new Vector2[widthNumber][heightNumber];
+		
+		data = "waterdata/" + data;
+		FileHandle clean_data = Gdx.files.local(data + ".clean");
+		if (!clean_data.exists()) {
+			try {
+				CSVModifier csvmod = new CSVModifier(Gdx.files.local(data));
+				csvmod.cleanupCSV();
+				clean_data = Gdx.files.local(data + ".clean");
+			}
+			catch (Exception e) {
+				System.out.println(e + "\nUsing backup data from 05-13-2016.");
+				clean_data = Gdx.files.internal("05-13-2016_LA.csv.clean");
+			}
+		}
+
+		Gdx.app.log("CurrentGrid", "Start creating");
+		String[] csvData = clean_data.readString().split("\n");
+		
+		for (int k = 0; k < csvData.length; ++k) {
+			String[] row = csvData[k].split(",");
+			
+			int i = (int)(Float.parseFloat(row[0]) * 10f - uMin * 10f),
+					j = (int)(Float.parseFloat(row[1]) * 10f - vMin * 10f);
+			Vector2 vec = new Vector2(Float.parseFloat(row[2]), Float.parseFloat(row[3]));
+			
+
+			if (currentGrid[i][j] != null)
+				Gdx.app.log("CurrentGrid", "ERROR: Doubled vector");
+
+			currentGrid[i][j] = vec;
+		}
+		Gdx.app.log("CurrentGrid", "Done creating");
 	}
 	
 	public Vector2[][] getCurrentGrid() {

@@ -162,7 +162,16 @@ public class MainScreen implements Screen {
 			@Override
 			public void clicked (InputEvent event, float x, float y) {
 				if (!win) {
-					Settings.map = new GameMap(TimeUtils.millis(), MapID.lesserAntilles);
+					/*switch (Settings.mission.id) {
+						default:
+						case Pottery:
+						case JaguarTeeth:
+							Settings.map = new GameMap(TimeUtils.millis(), MapID.lesserAntilles);
+							break;
+						case Placeholder:
+							Settings.map = new GameMap(TimeUtils.millis(), MapID.caribbean);
+							break;
+					}*/
 					Settings.mission.reset();
 					game.setScreen(new GameScreen(game));
 				} else

@@ -108,11 +108,14 @@ public class MissionSelectionScreen implements Screen {
 		
 		final TextButton mission01 = new TextButton("Mission01", tbs);
 		final TextButton mission02 = new TextButton("Mission02", tbs);
+		final TextButton mission03 = new TextButton("Mission03", tbs);
 		final TextButton apply = new TextButton("Apply", tbs);
 		final TextButton cancel = new TextButton("Cancel", tbs);
 		
-		bGroup.add(mission01, mission02);
+		bGroup.add(mission01, mission02, mission03);
 		bGroup.uncheckAll();
+		
+		// inital checked
 		switch (missionID) {
 		case Pottery:
 			mission01.setChecked(true);
@@ -120,16 +123,21 @@ public class MissionSelectionScreen implements Screen {
 		case JaguarTeeth:
 			mission02.setChecked(true);
 			break;
+		case Placeholder:
+			mission03.setChecked(true);
+			break;
 		}
 		
 		int misNum = 1;
 		mission01.setPosition(0, height - (5 + 50) * misNum++);
 		mission02.setPosition(0, height - (5 + 50) * misNum++);
+		mission03.setPosition(0, height - (5 + 50) * misNum++);
 		apply.setPosition(100 + width/2 - 150, -55);
 		cancel.setPosition(100 + width/2 + 50, -55);
 
 		group.addActor(mission01);
 		group.addActor(mission02);
+		group.addActor(mission03);
 		
 		group.addActor(apply);
 		group.addActor(cancel);
@@ -157,6 +165,15 @@ public class MissionSelectionScreen implements Screen {
 				bGroup.uncheckAll();
 				mission02.setChecked(true);
 				missionID = MissionID.JaguarTeeth;
+				textField.setText(Mission.getDesc(missionID));
+			}
+		});
+		mission03.addListener(new ClickListener() {
+			@Override
+			public void clicked(InputEvent event, float x, float y) {
+				bGroup.uncheckAll();
+				mission03.setChecked(true);
+				missionID = MissionID.Placeholder;
 				textField.setText(Mission.getDesc(missionID));
 			}
 		});

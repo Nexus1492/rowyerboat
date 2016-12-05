@@ -1,6 +1,9 @@
 General:
-long: 274.5 to 301
-lat: 9.5 to 27.5
+long: 274.5 to 305
+lat: 5 to 27.5
+
+vecs = new float[(305 - 274.5) * 10 + 1][(27.5 - 5) * 10 + 1] <=> new float[][]
+E.g.: http://ecowatch.ncddc.noaa.gov/erddap/griddap/NCOM_amseas_latest3d.largePng?water_u[(2016-12-08T00:00:00Z):1:(2016-12-08T00:00:00Z)][(0.0):1:(0)][(5):3:(27.5)][(274.5):3:(305)],water_v[(2016-12-08T00:00:00Z):1:(2016-12-08T00:00:00Z)][(0.0):1:(0)][(5):3:(27.5)][(274.5):3:(305)]
 
 Lesser Antilles:
 long: 292 to 301.1
