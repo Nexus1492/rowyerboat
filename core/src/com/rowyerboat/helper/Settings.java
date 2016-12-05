@@ -86,7 +86,7 @@ public class Settings {
 	
 	private static void checkVersion() {
 		float version = userData.getFloat("version", 1.00f);
-		float curr_version = 1.03f;
+		float curr_version = 1.031f;
 		if (version < 1.01f) {
 			userData.remove("lastMission");
 			userData.putBoolean("lastMissionEnergy", false);
@@ -98,7 +98,7 @@ public class Settings {
 			lastSession.putBoolean("lastMissionEnergy", false);
 			updateMission(new Mission(MissionID.Pottery));
 		}
-		if (version < 1.03f) {
+		if (version < 1.03f && version < curr_version) {
 			// Bugfix: Highscores are not properly saved (only for "Mission01ON"/"Mission01OFF")
 			highscores.putFloat(Mission.MissionID.Pottery + "ON",
 					highscores.getFloat("Mission01ON", Float.MAX_VALUE));
@@ -108,7 +108,7 @@ public class Settings {
 			highscores.putFloat(Mission.MissionID.JaguarTeeth + "OFF", Float.MAX_VALUE);
 			highscores.remove("Mission01ON");
 			highscores.remove("Mission01OFF");
-			
+
 			// save userIDoffset as negative integer
 			if (userData.getString("userIDoffset", null) == null) {
 				int offset = Math.abs(MathUtils.random.nextInt());

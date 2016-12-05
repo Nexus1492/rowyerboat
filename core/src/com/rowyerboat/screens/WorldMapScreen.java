@@ -78,6 +78,7 @@ public class WorldMapScreen implements Screen {
 		game = Settings.game;
 		lastScreen = s;
 		lastInput = Gdx.input.getInputProcessor();
+		// unbind controls
 		Gdx.input.setInputProcessor(null);
 		
 		worldMap = AssetLoader.mapTex;
@@ -103,7 +104,6 @@ public class WorldMapScreen implements Screen {
 			recordString = Transverter.secondsToString(recordTime);
 		}
 		
-		// unbind controls
 		if (isWin != null) {
 			Settings.tracker.postPoints();
 		}
@@ -125,6 +125,7 @@ public class WorldMapScreen implements Screen {
 		stage.act();
 		stage.draw();
 
+		// after 1 second, accept input
 		if (time > 1 && (Gdx.input.isTouched() || Gdx.input.isKeyJustPressed(-1))) {
 			Gdx.input.setInputProcessor(lastInput);
 			game.setScreen(lastScreen);
@@ -138,14 +139,17 @@ public class WorldMapScreen implements Screen {
 		shaper.begin(ShapeType.Line);
 		// render mapborders
 		shaper.setColor(Color.WHITE);
-		shaper.rect(x, y, width, height-1);
+		shaper.rect(x, y, width, height - 1);
 		// render points as BLUE line
 		shaper.setColor(Color.BLUE);
-		for (int i = 1; i < pts.size; i += Math.max(1, pts.size/1000)) {
+		int offset = Math.max(1, pts.size/1000);
+		for (int i = 1; i < pts.size; i += offset) {
 			vec2 = Transverter.gameToTexture(pts.get(i), width, height).add(x, y);
 			shaper.line(vec, vec2);
 			vec = vec2.cpy();
 			shaper.circle(vec.x, vec.y, 1f);
+			if (i + offset >= pts.size)
+				i = pts.size - 1;
 		}
 		// render boat position
 		shaper.circle(vec.x, vec.y, 5f);
@@ -176,34 +180,6 @@ public class WorldMapScreen implements Screen {
 		};
 		map.setPosition(x, y);
 		stage.addActor(map);
-		
-		/*Actor mapBorder = new Actor() {
-			@Override
-			public void draw (Batch batch, float parentAlpha) {
-				batch.end();
-				
-				Array<Vector2> pts = Settings.tracker.getPoints();
-				Vector2 vec = Transverter.gameToTexture(pts.get(0), width, height).add(x, y), vec2;
-				
-				shaper.setProjectionMatrix(stage.getCamera().combined);
-				shaper.begin(ShapeType.Line);
-				shaper.setColor(Color.WHITE);
-				shaper.rect(this.getX(), this.getY(), width, height-1);
-				shaper.setColor(Color.BLUE);
-				for (int i = 1; i < pts.size; ++i) {
-					vec2 = Transverter.gameToTexture(pts.get(i), width, height);
-					shaper.line(vec, vec2);
-					vec = vec2.cpy();
-					shaper.circle(vec.x, vec.y, 1f);
-				}
-				shaper.circle(vec.x, vec.y, 5f);
-				shaper.end();
-				
-				batch.begin();
-			}
-		};
-		mapBorder.setPosition(x, y);
-		stage.addActor(mapBorder);*/
 		
 		if (isWin != null) {
 			Table table = new Table();
