@@ -15,35 +15,34 @@ public class CSVModifier {
 	
 	public boolean cleanupCSV() {
 		String[] splits = loc.readString().split("\n");
-		String newStr = "";
+		StringBuilder newStr = new StringBuilder();
 		for (int i = 0; i < splits.length; ++i) {
 			String[] parts = splits[i].split(",");
-			newStr += String.format(Locale.US, "%.1f", Float.parseFloat(parts[3]));
-			newStr += ",";
+			newStr.append(String.format(Locale.US, "%.1f", Float.parseFloat(parts[3])));
+			newStr.append(",");
 
-			newStr += String.format(Locale.US, "%.1f", Float.parseFloat(parts[2]));
-			newStr += ",";
+			newStr.append(String.format(Locale.US, "%.1f", Float.parseFloat(parts[2])));
+			newStr.append(",");
 			
 			if (parts[4].equals("NaN"))
-				newStr += "0";
+				newStr.append("0");
 			else
-				newStr += parts[4];
-			newStr += ",";
+				newStr.append(parts[4]);
+			newStr.append(",");
 			
 			if (parts[5].equals("NaN"))
-				newStr += "0";
+				newStr.append("0");
 			else
-				newStr += parts[5];
-			newStr += "\n";
+				newStr.append(parts[5]);
+			newStr.append("\n");
 			
 			if (i % 50 == 0)
 				System.out.print("\r" + "Progress: " + 
-						String.format(Locale.US, "%.2f", (float)(i / splits.length * 100f)));
+						String.format(Locale.US, "%.2f", (float)(i / (float)splits.length * 100f)));
 		}
+		System.out.println("\n");
 		FileHandle write = Gdx.files.local(loc.path() + ".clean");
-		write.writeString(newStr, false);
-		
-		System.out.println();
+		write.writeString(newStr.toString(), false);
 		
 		return false;
 	}

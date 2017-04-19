@@ -26,6 +26,7 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.rowyerboat.gameobjects.Location;
 import com.rowyerboat.helper.AssetLoader;
+import com.rowyerboat.helper.HttpPoster;
 import com.rowyerboat.helper.Settings;
 import com.rowyerboat.scientific.Transverter;
 
@@ -43,8 +44,6 @@ public class WorldMapScreen implements Screen {
 	SpriteBatch batch;
 	ShapeRenderer shaper;
 	BitmapFont font;
-	
-	Boolean isWin;
 	
 	Game game;
 	Screen lastScreen;
@@ -65,18 +64,16 @@ public class WorldMapScreen implements Screen {
 	String recordString;
 	
 	public WorldMapScreen (Screen s) {
-		this(s, null);
-	}
-	
-	public WorldMapScreen (Screen s, Boolean b) {
 		batch = new SpriteBatch();
 		shaper = new ShapeRenderer();
 		shaper.setColor(Color.GREEN);
 		font = new BitmapFont();
-		isWin = b;
 		
 		game = Settings.game;
-		lastScreen = s;
+		if (s != null)
+			lastScreen = s;
+		else
+			lastScreen = new MainScreen(game);
 		lastInput = Gdx.input.getInputProcessor();
 		// unbind controls
 		Gdx.input.setInputProcessor(null);
@@ -90,23 +87,6 @@ public class WorldMapScreen implements Screen {
 		width = ((float)worldMap.getWidth() / (float)worldMap.getHeight()) * height;
 		x = viewport.getWorldWidth()/2 - width/2;
 		y = 0f;
-
-		if (isWin != null ? isWin : false) {
-			float timeTaken = Settings.tracker.timeTaken;
-			timeTakenString = Transverter.secondsToString(timeTaken);
-			float recordTime = Settings.highscores.getFloat(Settings.mission.id + (Settings.useEnergy ? "ON" : "OFF"),
-					Float.MAX_VALUE);
-			if (recordTime > timeTaken) {
-				Settings.highscores.putFloat(Settings.mission.id + (Settings.useEnergy ? "ON" : "OFF"), timeTaken);
-				Settings.highscores.flush();
-				recordTime = timeTaken;
-			}
-			recordString = Transverter.secondsToString(recordTime);
-		}
-		
-		if (isWin != null) {
-			//Settings.tracker.postPoints(); TODO
-		}
 
 		createStage();
 	}
@@ -163,7 +143,11 @@ public class WorldMapScreen implements Screen {
 				shaper.circle(vec.x, vec.y, 3);
 			shaper.circle(vec.x, vec.y, 5f);
 		}
-		// render unreached targets
+		if (pts.size < 2) {
+			shaper.setColor(Color.BLUE);
+			vec = Transverter.gameToTexture(Settings.mission.initialBoatPos, width, height).add(x, y);
+			shaper.circle(vec.x, vec.y, 5f);
+		}
 		shaper.end();
 	}
 	
@@ -180,26 +164,6 @@ public class WorldMapScreen implements Screen {
 		};
 		map.setPosition(x, y);
 		stage.addActor(map);
-		
-		if (isWin != null) {
-			Table table = new Table();
-			Label.LabelStyle style = new Label.LabelStyle(font, Color.WHITE);
-			if (isWin) {
-				table.add(new Label("Mission accomplished!", style)).right().colspan(2);
-				table.row();
-				table.add(new Label("Time Taken:", style)).left();
-				table.add(new Label(timeTakenString, style)).right();
-				table.row();
-				table.add(new Label("Record:", style)).left();
-				table.add(new Label(recordString, style)).right();
-			} else
-				table.add(new Label("You failed.", style)).right().colspan(2);
-			
-			//table.left();
-			table.setPosition(x/2, stage.getHeight()/2);
-			
-			stage.addActor(table);
-		}
 	}
 
 	@Override

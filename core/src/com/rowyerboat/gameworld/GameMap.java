@@ -8,8 +8,9 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.rowyerboat.gameobjects.Location;
 import com.rowyerboat.helper.CSVModifier;
-import com.rowyerboat.helper.SVGReader;
+import com.rowyerboat.helper.SVGModifier;
 import com.rowyerboat.helper.Settings;
+import com.rowyerboat.scientific.Tracker;
 
 public class GameMap {
 	public MapID ID;
@@ -43,7 +44,7 @@ public class GameMap {
 		
 		switch(id){
 		/*
-		 * Lesser Antilles from 9.5°N to 19.1°N and 292° to 301.1°E
+		 * Lesser Antilles from 9.5ï¿½N to 19.1ï¿½N and 292ï¿½ to 301.1ï¿½E
 		 * 100 Pixels on-screen resemble approx 110m in real-world degree
 		 */
 		default:
@@ -57,33 +58,32 @@ public class GameMap {
 			
 			createGrid("05-13-2016_LA.csv", vMin, vMax, uMin, uMax);
 
-			Gdx.app.log("Map", "Reading SVG");
-			try {
-				SVGReader.start("LesserAntilles_all.svg", width, height, 25f);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			islands = SVGReader.islands;
-			
+			processSVG("LesserAntilles_all.svg");
 			break;
 
 		case caribbean:
 			Settings.boatScale = 0.1f;
 
-			vMin = 9.5f;
-			vMax = 19.1f;
-			uMin = 292f;
-			uMax = 301.1f;
+			vMin = 5f;
+			vMax = 27f;
+			uMin = 274f;
+			uMax = 305;
 			
-			this.width = 1000;
-			this.height = 1000;
+			createGrid("2016-05-13.csv", vMin, vMax, uMin, uMax);
 			
-			Vector2 vec = new Vector2(0.1f, 0);
-			currentGrid = new Vector2[][]{{vec, vec}, {vec, vec}};
-			
-			//createGrid("05-13-2016_LA.csv", vMin, vMax, uMin, uMax);
+			//processSVG("Caribbean.svg");
 			break;
 		}
+	}
+
+	private void processSVG(String path) {
+		Gdx.app.log("Map", "Reading SVG");
+		try {
+			SVGModifier.start(path, width, height, 4f);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		islands = SVGModifier.islands;
 	}
 
 	private void createGrid(String data, float vMin, float vMax, float uMin, float uMax) {
@@ -101,13 +101,13 @@ public class GameMap {
 		FileHandle clean_data = Gdx.files.local(data + ".clean");
 		if (!clean_data.exists()) {
 			try {
-				CSVModifier csvmod = new CSVModifier(Gdx.files.local(data));
+				CSVModifier csvmod = new CSVModifier(Gdx.files.internal(data));
 				csvmod.cleanupCSV();
 				clean_data = Gdx.files.local(data + ".clean");
 			}
 			catch (Exception e) {
-				System.out.println(e + "\nUsing backup data from 05-13-2016.");
-				clean_data = Gdx.files.internal("05-13-2016_LA.csv.clean");
+				System.out.println(e + "\nUsing backup data from 05-13-2016."); //TODO important!
+				clean_data = Gdx.files.internal("waterdata/05-13-2016_LA.csv.clean");
 			}
 		}
 

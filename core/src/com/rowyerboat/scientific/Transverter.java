@@ -61,12 +61,20 @@ public abstract class Transverter {
 		return v;
 	}
 	
+	/** transform time in seconds as <code>String</code> into formatted String "%2d:%2d" */
+	public static String secondsToString(String stringSecs) {
+		float secs = Float.valueOf(stringSecs);
+		String str = String.format("%2d" + ":" + (secs % 60 < 10 ? "0" : "") + "%d",
+				(int)(secs / 60),
+				(int)(secs % 60));
+		return str;
+	}
+	
 	/** transform time in seconds into formatted String "%2d:%2d" */
 	public static String secondsToString(float secs) {
 		String str = String.format("%2d" + ":" + (secs % 60 < 10 ? "0" : "") + "%d",
 				(int)(secs / 60),
 				(int)(secs % 60));
-		
 		return str;
 	}
 	

@@ -1,12 +1,14 @@
 package com.rowyerboat.gameworld;
 
+import java.util.HashMap;
+
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.rowyerboat.gameobjects.Location;
 import com.rowyerboat.gameworld.GameMap.MapID;
-import com.rowyerboat.gameworld.Mission.MissionID;
 import com.rowyerboat.helper.Settings;
+import com.rowyerboat.scientific.Tracker;
 import com.rowyerboat.scientific.Transverter;
 
 public class Mission {
@@ -14,38 +16,49 @@ public class Mission {
 	public String name;
 	public MissionID id;
 	public String description;
+	
+	public Vector2 initialBoatPos;
+	public Vector2 initialBoatDir;
 
 	private Array<Location> targets;
 	private Array<Location> dangers;
 	
-	private int pointerT = 0;
-	private int pointerD = 0;
+	private static int pointerT = 0;
+	private static int pointerD = 0;
+	
+	static HashMap<MissionID, Mission> missions;
 	
 	public static enum MissionID {
 		Placeholder, JaguarTeeth, Pottery
 	}
 	
-	/*public Mission() {
-		targets = new Array<Location>();
-		dangers = new Array<Location>();
+	public static void init() {
+		missions = new HashMap<MissionID, Mission>();
+		for (MissionID id : MissionID.values())
+			missions.put(id, new Mission(id));
 	}
 	
-	public Mission(String name, MissionID id) {
-		this.name = name;
-		this.id = id;
-		targets = new Array<Location>();
-		dangers = new Array<Location>();
-	}*/
+	public static Mission getMission(String idString) {
+		return getMission(MissionID.valueOf(idString));
+	}
 	
-	public Mission(MissionID id) {
+	public static Mission getMission(MissionID id) {
+		return missions.get(id);
+	}
+	
+	private Mission(String missionName) {
+		this(MissionID.valueOf(missionName));
+	}
+	
+	private Mission(MissionID id) {
 		targets = new Array<Location>();
 		dangers = new Array<Location>();
 		this.id = id;
 		switch(id){
 		default:
 		case JaguarTeeth:
-			Settings.initialBoatPos = Transverter.textureToGame(new Vector2(551, 384), true);
-			Settings.initialBoatDir = new Vector2(1, -1);
+			initialBoatPos = Transverter.textureToGame(new Vector2(551, 384), true);
+			initialBoatDir = new Vector2(1, -1);
 			name = "Jaguar Teeth";
 			addTargets(new Location("target0", Transverter.textureToGame(new Vector2(450, 540), true)),
 					new Location("target1", Transverter.textureToGame(new Vector2(447, 372), true)),
@@ -54,8 +67,8 @@ public class Mission {
 			Settings.map = new GameMap(TimeUtils.millis(), MapID.lesserAntilles);
 			break;
 		case Pottery:
-			Settings.initialBoatPos = Transverter.textureToGame(new Vector2(321, 48), true);
-			Settings.initialBoatDir = new Vector2(-1, 0);
+			initialBoatPos = Transverter.textureToGame(new Vector2(321, 48), true);
+			initialBoatDir = new Vector2(-1, 0);
 			name = "Pottery Acquisition";
 			addTargets(new Location("target0", Transverter.textureToGame(new Vector2(210, 33), true)),
 					new Location("target1", Transverter.textureToGame(new Vector2(175, 64), true)),
@@ -63,13 +76,12 @@ public class Mission {
 			Settings.map = new GameMap(TimeUtils.millis(), MapID.lesserAntilles);
 			break;
 		case Placeholder:
-			Settings.initialBoatPos = new Vector2(0, 0);
-			Settings.initialBoatDir = new Vector2(1, 1);
+			initialBoatPos = new Vector2(100, 100);
+			initialBoatDir = new Vector2(1, 1);
 			name = "Placeholder";
 			addTargets(new Location("target0", new Vector2(1000, 1000)));
 			Settings.map = new GameMap(TimeUtils.millis(), MapID.caribbean);
 		}
-
 		description = getDesc(id);
 	}
 	
@@ -131,7 +143,10 @@ public class Mission {
 		return dangers.size;
 	}
 	
-	public void reset() {
+	/**
+	 * Simply resets the pointers for dangers and targets.
+	 */
+	public static void reset() {
 		pointerT = 0;
 		pointerD = 0;
 	}
@@ -143,7 +158,7 @@ public class Mission {
 					+ "Your village's chief has heard about some very beautiful pottery being "
 					+ "made by the people living in Puerto Rico. He now wants to send four of the village's "
 					+ "most skilled potters for an apprenticeship to learn the techniques. Your task is "
-					+ "to bring them there safely. Make sure to make two stops in the Virgin Islands to"
+					+ "to bring them there safely. Make sure to make two stops in the Virgin Islands to "
 					+ "stock up on food and water.";
 		case JaguarTeeth:
 			return "Jaguar Teeth\n\n"

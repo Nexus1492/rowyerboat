@@ -49,10 +49,10 @@ public class GameWorld {
 		gameScreen = screen;
 		
 		// Generate boat, locations and islands
-		this.boat = new Boat(this, Settings.initialBoatPos);
-		this.boat.setDir(Settings.initialBoatDir);
+		this.boat = new Boat(this, Settings.mission.initialBoatPos);
+		this.boat.setDir(Settings.mission.initialBoatDir);
 		this.boat.setScale(Settings.boatScale);
-		this.resetPosDir = new Vector2[]{Settings.initialBoatPos, Settings.initialBoatDir};
+		this.resetPosDir = new Vector2[]{Settings.mission.initialBoatPos, Settings.mission.initialBoatDir};
 		
 		this.locations = new Array<Location>();
 		this.locations.addAll(map.islands);
@@ -61,12 +61,11 @@ public class GameWorld {
 		this.target = Settings.mission.nextTarget();
 		this.targetsHit = new Array<String>();
 		
-		Settings.tracker = new Tracker(boat);
+		Settings.tracker.setBoat(boat);
 		Gdx.app.log("GameWorld", "Succes creating random Boat and TargetIsland");
-		Gdx.app.log("Boat", "" + Settings.initialBoatPos);
+		Gdx.app.log("Boat", "" + Settings.mission.initialBoatPos);
 		Gdx.app.log("TargetIsland", "" + target.getPos());
 		
-		// Create the currents, one must be always null
 		this.currentGrid = map.getCurrentGrid();
 		gridDistance = map.gridDistance;
 		
@@ -173,7 +172,7 @@ public class GameWorld {
 		this.boat.setDir(resetPosDir[1]);
 		this.boat.setScale(Settings.boatScale);
 		renderer.resetBoat(this.boat);
-		Settings.tracker.resetBoat(this.boat);
+		Settings.tracker.setBoat(this.boat);
 	}
 	
 	public void boatLeftSwing() {
@@ -217,7 +216,6 @@ public class GameWorld {
 			Gdx.app.log("Mission", "Accomplished.");
 		else
 			Gdx.app.log("Mission", "Failed.");
-		Settings.tracker.isWin = isWin;
 		gameScreen.end(isWin);
 	}
 	

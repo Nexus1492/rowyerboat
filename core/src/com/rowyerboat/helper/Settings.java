@@ -3,10 +3,8 @@ package com.rowyerboat.helper;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
-import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.rowyerboat.gameworld.GameMap;
 import com.rowyerboat.gameworld.GameWorld;
@@ -15,17 +13,17 @@ import com.rowyerboat.gameworld.Mission.MissionID;
 import com.rowyerboat.rendering.GameRenderer;
 import com.rowyerboat.rendering.GameRenderer.CameraMode;
 import com.rowyerboat.scientific.Tracker;
-import com.rowyerboat.screens.MissionSelectionScreen;
 
 public class Settings {
 	public static Game game;
+	
+	public static boolean online = false;
+	
 	public static Preferences highscores;
 	public static Preferences userData;
 	public static Preferences lastSession;
 	public static String userID;
 	public static boolean firstTime;
-	
-	public static AssetManager assets;
 	
 	// Screen resolution
 	final public static int width = 1040;
@@ -40,15 +38,12 @@ public class Settings {
 	public static float boatScale = 0.1f;
 	final public static float speedScale = 25f;
 	
-	// set by map
-	public static Vector2 initialBoatPos;
-	public static Vector2 initialBoatDir;
-	
 	// set by menu screen
 	public static GameMap map;
 
 	// set by missionSelection screen
 	public static Mission mission;
+	public static MissionID missionID;
 	public static boolean useEnergy;
 	
 	// set by game screen
@@ -73,8 +68,9 @@ public class Settings {
 		useEnergy = lastSession.getBoolean("lastMissionEnergy", false);
 		
 		// Read out the last Mission
-		mission = new Mission(MissionID.valueOf(lastSession.getString("lastMission",
+		mission = Mission.getMission(MissionID.valueOf(lastSession.getString("lastMission",
 				MissionID.Pottery.toString()))); // if no last mission is given, set lastMission to POTTERY ACQUISITION
+		Settings.tracker = new Tracker();
 		
 		firstTime = userData.getBoolean("firstTime", true);
 		
@@ -85,7 +81,7 @@ public class Settings {
 	
 	private static void checkVersion() {
 		float version = userData.getFloat("version", 1.00f);
-		float curr_version = 1.031f;
+		float curr_version = 1.04f;
 		if (version < 1.01f) {
 			userData.remove("lastMission");
 			userData.putBoolean("lastMissionEnergy", false);
@@ -95,9 +91,9 @@ public class Settings {
 			userData.remove("lastMission");
 			userData.remove("lastMissionEnergy");
 			lastSession.putBoolean("lastMissionEnergy", false);
-			updateMission(new Mission(MissionID.Pottery));
+			updateMission(MissionID.Pottery);
 		}
-		if (version < 1.03f && version < curr_version) {
+		if (version < 1.03f) {
 			// Bugfix: Highscores are not properly saved (only for "Mission01ON"/"Mission01OFF")
 			highscores.putFloat(Mission.MissionID.Pottery + "ON",
 					highscores.getFloat("Mission01ON", Float.MAX_VALUE));
@@ -117,6 +113,9 @@ public class Settings {
 			else if (userData.getString("userIDoffset").charAt(0) != '-')
 				userData.putString("userIDoffset", "-" + userData.getString("userIDoffset"));
 		}
+		if (version < 1.04 && version < curr_version) {
+			Gdx.app.getPreferences("logStack").putInteger("stackSize", 0);
+		}
 		userData.putFloat("version", curr_version);
 		userData.flush();
 		lastSession.flush();
@@ -129,9 +128,15 @@ public class Settings {
 		userData.flush();
 	}
 	
-	public static void updateMission(Mission mis) {
-		mission = mis;
-		lastSession.putString("lastMission", mis.id.toString());
+	/** 
+	 * update the ID of the last selected mission
+	 * 
+	 * @param mis
+	 */
+	public static void updateMission(MissionID mis) {
+		missionID = mis;
+		mission = Mission.getMission(missionID);
+		lastSession.putString("lastMission", mis.toString());
 		lastSession.flush();
 	}
 }

@@ -56,12 +56,12 @@ public class GameRenderer {
 	private GameWorld world;
 	private Boat boat;
 	private Location target;
-    private Array<Location> locations;
+    protected Array<Location> locations;
 	private Vector2[][] currentGrid;
 	
 	private GameUI gameUI;
-	
-	private PerspectiveCamera camera;
+
+	protected PerspectiveCamera camera;
     public float camDistNear = 30f * Settings.boatScale;
     public float camDistFar = 130f * Settings.boatScale;
     public float camOrthoDist = 8000f;
@@ -84,7 +84,7 @@ public class GameRenderer {
     
 	private SpriteBatch batch;
 	private SpriteBatch staticBatch;
-	private ShapeRenderer shaper;
+	protected ShapeRenderer shaper;
 	private ShapeRenderer staticShaper;
 	
 	private BitmapFont font;
@@ -92,20 +92,20 @@ public class GameRenderer {
 	private Polygon boatBox;
 	public CameraMode cameraMode = CameraMode.dynamicNear;
 
-    private ModelBatch modelBatch;
-    private SimpleWaterShader waterShader;
+    protected ModelBatch modelBatch;
+    protected SimpleWaterShader waterShader;
     /** used in the {@link GameRendererOpenGL} version of the game; is now used to switch between
      * using a FBO (shaderID = 0) or non FBO rendering of the game
      * */
-    private int shaderID;
+    protected int shaderID;
     
-    private Environment environment;
+    protected Environment environment;
     private Model paddleModel;
     private Model arrowModel;
     private Model boatScene;
-    private ModelInstance boatInstance;
-    private Array<ModelInstance> waterInstances;
-	private Array<ModelInstance> islandInstances;
+    protected ModelInstance boatInstance;
+    protected Array<ModelInstance> waterInstances;
+	protected Array<ModelInstance> islandInstances;
 	private ModelInstance paddleInstance;
     private ModelInstance arrowInstance;
     private AnimationController paddleAnimation;
@@ -230,9 +230,6 @@ public class GameRenderer {
 		arrowInstance.transform.setToTranslation(targetPos.x, targetPos.y,
 				30f + 10f * (MathUtils.sin(time * 10f) * 0.5f + 0.5f)).rotate(1, 0, 0, -90f);
 		
-		modelBatch.begin(camera);
-		modelBatch.end();
-		
 		// Render 3D Models
 		waterShader.update(delta);
 		modelBatch.begin(camera);
@@ -245,8 +242,7 @@ public class GameRenderer {
 			paddleAnimation.update(Gdx.graphics.getDeltaTime() * 3f);
 			modelBatch.render(paddleInstance, environment);
 		}
-		if (currentGrid != null)
-			modelBatch.render(arrowInstance, environment);
+		modelBatch.render(arrowInstance, environment);
 		for (int i = 0; i < islandInstances.size; ++i)
 			modelBatch.render(islandInstances.get(i), environment);
 		modelBatch.end();
@@ -588,7 +584,7 @@ public class GameRenderer {
 
 	// ********************************** DEBUG **********************************
 	
-	private void debugCurrentGrid() {
+	protected void debugCurrentGrid() {
 		shaper.begin(ShapeType.Filled);
 		shaper.setColor(Color.RED);
 		for (int i = 0; i < currentGrid.length; ++i)
@@ -600,7 +596,7 @@ public class GameRenderer {
 		shaper.end();
 	}
 	
-	private void debugHitboxes() {
+	protected void debugHitboxes() {
 		// Boat und Target Hitbox / Boat.Mid
 		shaper.begin(ShapeType.Line);
 		shaper.setAutoShapeType(true);

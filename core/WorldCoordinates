@@ -1,9 +1,17 @@
 General:
-long: 274.5 to 305
-lat: 5 to 27.5
+S, E , N  , W
+5,-55,27,-86
+long: 274 to 305	|| 	86 to 55 (West)
+lat: 5 to 27
 
-vecs = new float[(305 - 274.5) * 10 + 1][(27.5 - 5) * 10 + 1] <=> new float[][]
-E.g.: http://ecowatch.ncddc.noaa.gov/erddap/griddap/NCOM_amseas_latest3d.largePng?water_u[(2016-12-08T00:00:00Z):1:(2016-12-08T00:00:00Z)][(0.0):1:(0)][(5):3:(27.5)][(274.5):3:(305)],water_v[(2016-12-08T00:00:00Z):1:(2016-12-08T00:00:00Z)][(0.0):1:(0)][(5):3:(27.5)][(274.5):3:(305)]
+NASA query: http://reverb.echo.nasa.gov/reverb/url_hashes/66enw4pp
+I agree to redistribute the ASTER GDEM *only* to individuals within my organization or project of intended use or in response to disasters in support of the GEO Disaster Theme.
+When presenting or publishing ASTER GDEM data, I agree to include "ASTER GDEM is a product of METI and NASA."
+
+=> width: 
+
+vecs = new float[(305 - 274) * 10 + 1][(27 - 5) * 10 + 1] <=> new float[][]
+E.g.: https://ecowatch.ncddc.noaa.gov/erddap/griddap/NCOM_amseas_latest3d.largePng?water_u[(2016-12-08T00:00:00Z):1:(2016-12-08T00:00:00Z)][(0.0):1:(0)][(5):3:(27)][(274):3:(305)],water_v[(2016-12-08T00:00:00Z):1:(2016-12-08T00:00:00Z)][(0.0):1:(0)][(5):3:(27)][(274):3:(305)]
 
 Lesser Antilles:
 long: 292 to 301.1
@@ -11,3 +19,12 @@ lat: 9.5 to 19.1
 
 vecs = new float[(301.1 - 292) * 10 + 1][(19.1 - 9.5) * 10 + 1] <=> new float[92][97]
 E.g.:  http://ecowatch.ncddc.noaa.gov/erddap/griddap/NCOM_amseas_latest3d.csv?water_u[(2016-11-01T00:00:00Z):1:(2016-11-01T00:00:00Z)][(0.0):1:(0)][(9.5):3:(19.1)][(292.0):3:(301.1)],water_v[(2016-11-01T00:00:00Z):1:(2016-11-01T00:00:00Z)][(0.0):1:(0)][(9.5):3:(19.1)][(292.0):3:(301.1)]
+
+
+
+Blender Tutorial:
+- import svg
+- curve im menü rechts
+- 2D
+- skalieren
+- um die Y dimension verschieben

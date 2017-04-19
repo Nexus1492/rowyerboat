@@ -1,0 +1,11 @@
+- implementing the whole caribbean
+    - CSV import works properly
+    - SVGReader needs some finetuning as the SVG is simplified
+- cleaning an svg proves to be cumbersome and takes quiet a while - maybe upload currentdata on centralized server // SOLVED: StringBuilder (few minutes vs. milliseconds)
+- adding utility-screen to debug the world
+- logStack implemented
+
+- HttpPoster reworked to actually call the highscore screen by itself (tiny lag, but that's okay)
+- reworked the php-script on the serverside. highscores are saved with "[userID]-[userOffset]", but the user only gets to see the last (TODO, might adjust) FOUR digits of the offset (safety reasons). If adjusted, the HighscoreStage table must also be adjusted.
+
+- gameflow is now: disclaimer - (tutorial - ) main menu - game screen - highscores - main menu/map/game screen
