@@ -49,21 +49,22 @@ public class GameWorld {
 		gameScreen = screen;
 		
 		// Generate boat, locations and islands
-		this.boat = new Boat(this, Settings.mission.initialBoatPos);
-		this.boat.setDir(Settings.mission.initialBoatDir);
+		Mission mission = Settings.getMission();
+		this.boat = new Boat(this, mission.initialBoatPos);
+		this.boat.setDir(mission.initialBoatDir);
 		this.boat.setScale(Settings.boatScale);
-		this.resetPosDir = new Vector2[]{Settings.mission.initialBoatPos, Settings.mission.initialBoatDir};
+		this.resetPosDir = new Vector2[]{mission.initialBoatPos, mission.initialBoatDir};
 		
 		this.locations = new Array<Location>();
 		this.locations.addAll(map.islands);
-		this.locations.addAll(Settings.mission.getLocations());
+		this.locations.addAll(mission.getLocations());
 
-		this.target = Settings.mission.nextTarget();
+		this.target = mission.nextTarget();
 		this.targetsHit = new Array<String>();
 		
 		Settings.tracker.setBoat(boat);
 		Gdx.app.log("GameWorld", "Succes creating random Boat and TargetIsland");
-		Gdx.app.log("Boat", "" + Settings.mission.initialBoatPos);
+		Gdx.app.log("Boat", "" + mission.initialBoatPos);
 		Gdx.app.log("TargetIsland", "" + target.getPos());
 		
 		this.currentGrid = map.getCurrentGrid();
@@ -80,8 +81,10 @@ public class GameWorld {
 		Vector2 currDirBow = new Vector2(0, 0),
 				currDirStern = new Vector2(0, 0);
 
-		currDirBow = calculateVecFromGrid(boat.bowPoint);
-		currDirStern = calculateVecFromGrid(boat.sternPoint);
+		if (currentGrid != null) {
+			currDirBow = calculateVecFromGrid(boat.bowPoint);
+			currDirStern = calculateVecFromGrid(boat.sternPoint);
+		}
 		
 		if (startRowing) {
 			Settings.tracker.update(delta);
@@ -100,11 +103,12 @@ public class GameWorld {
 	}
 
 	private void checkForNextTarget() {
-		Location nextT = Settings.mission.nextTarget();
+		Location nextT = Settings.getMission().nextTarget();
 		if (nextT == null) { // last target reached
 			Settings.tracker.targetReached();
 			gameEnd(true);
 		} else { // only set up next target
+			AssetLoader.fx_targetReached.play();
 			target = nextT; 
 			resetPosDir = new Vector2[]{boat.getPos(), boat.getDir()};
 			Gdx.app.log("Target switched to", target.name);
@@ -198,7 +202,6 @@ public class GameWorld {
 		if (!renderer.renderPaddle) {
 			boat.stopLeft();
 			renderer.stopLeft();
-			//sound
 		}
 	}
 
@@ -207,15 +210,16 @@ public class GameWorld {
 		if (!renderer.renderPaddle) {
 			boat.stopRight();
 			renderer.stopRight();
-			//sound
 		}
 	}
 	
 	public void gameEnd(boolean isWin) {
-		if (isWin)
+		if (isWin) {
+			AssetLoader.fx_missionAccomplished.play();
 			Gdx.app.log("Mission", "Accomplished.");
-		else
+		} else {
 			Gdx.app.log("Mission", "Failed.");
+		}
 		gameScreen.end(isWin);
 	}
 	

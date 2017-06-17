@@ -23,6 +23,8 @@ public class Boat {
 	/** the direction of the movement due to currents,
 	 * 	length reflects m/s */
 	private Vector2 currentDirection;
+	
+	public Vector2 currentDisplacement;
 	/** position of the boat's mid in the gameworld; functions as its position */
 	private Vector2 midPoint;
 	/** time elapsed since the last stroke */
@@ -196,6 +198,9 @@ public class Boat {
 	 * @param delta Time passed between frames for scaling from per frame to per second
 	 */
 	public void moveBowAndStern(Vector2 bowDir, Vector2 sternDir, float delta) {
+		currentDisplacement = sternPoint.cpy().add(sternDir)
+				.add(bowPoint.cpy().add(bowDir).sub(sternPoint.cpy().add(sternDir)).scl(0.5f))
+				.sub(midPoint);
 		currSpeed[0] = bowDir.len();
 		currSpeed[1] = sternDir.len();
 		if (currSpeed[0] > 0 && currSpeed[1] > 0) {
@@ -207,8 +212,8 @@ public class Boat {
 			direction.set(newDir);
 			rotation = direction.angle();
 
-			currSpeed[2] = currentDirection.len() / delta / Settings.speedScale;
 			currentDirection = newMid.cpy().sub(midPoint);
+			currSpeed[2] = currentDirection.len() / delta / Settings.speedScale;
 			midPoint.add(currentDirection);
 		}
 	}
@@ -321,7 +326,7 @@ public class Boat {
 
 	public void setDir(Vector2 dirVec) {
 		this.direction.set(dirVec);
-		this.currentDirection = dirVec;
+		this.currentDirection = new Vector2(0, 0);
 		this.rotation = direction.angle();
 		updateHitbox();
 	}

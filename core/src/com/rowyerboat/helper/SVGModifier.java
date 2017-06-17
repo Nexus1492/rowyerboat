@@ -1,7 +1,5 @@
 package com.rowyerboat.helper;
 
-import java.awt.datatransfer.StringSelection;
-import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,10 +19,10 @@ public class SVGModifier {
 	
 	private static float svgX, svgY, xFactor, yFactor;
 	
-	public static void start(String loc, int width, int height, float precision) throws Exception {
-		FileHandle svgClean = Gdx.files.local("SVGs/" + loc + ".clean");
-		FileHandle svg = Gdx.files.internal(loc);
-		source = loc;
+	public static void start(String fileName, int width, int height, float precision) throws Exception {
+		FileHandle svgClean = Gdx.files.internal("SVGs/" + fileName + ".clean");
+		FileHandle svg = Gdx.files.internal("SVGs/" + fileName);
+		source = fileName;
 		
 		if (svgClean.exists()) {
 			Gdx.app.log("SVGReader", "Clean file found");
@@ -81,8 +79,8 @@ public class SVGModifier {
 		if (viewBoxMatcher.find()) {
 			svgX = Float.parseFloat(viewBoxMatcher.group(1).split(" ")[2]);
 			svgY = Float.parseFloat(viewBoxMatcher.group(1).split(" ")[3]);
-			xFactor = (float)width / svgX;
-			yFactor = (float)height / svgY;
+			xFactor = width / svgX;
+			yFactor = height / svgY;
 		}
 		xMin = svgX * xFactor;
 		yMin = svgY * yFactor;
@@ -131,7 +129,7 @@ public class SVGModifier {
 							p2 = new Vector2(savingVals[2], svgY - savingVals[3]), //p2 - Controllpoint2
 							p3 = new Vector2(savingVals[4], svgY - savingVals[5]); //p3 - Endpoint
 					for (int j = 0; j <= precision; ++j) {
-						Vector2 vec = Bezier.cubic(new Vector2(), (float)j/precision, p0, p1, p2, p3, new Vector2());
+						Vector2 vec = Bezier.cubic(new Vector2(), j/precision, p0, p1, p2, p3, new Vector2());
 						vec.x *= xFactor;
 						vec.y *= yFactor;
 						verts.add(vec.x);

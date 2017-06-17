@@ -1,6 +1,7 @@
 package com.rowyerboat.helper;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
@@ -13,13 +14,18 @@ public class AssetLoader {
 	
 	public static Texture tick, tickTransp;
 	
-	public static Texture mapTex, mapBackground;
+	public static Texture mapTex, mapBackground, mapTex_tut0, mapTex_tut1;
 	
 	public static Texture nexusLogo, titleScreen;
 	
 	public static Sound paddleSplash;
 	
-	public static BitmapFont font;
+	private static BitmapFont font;
+	
+	public static Music gameMusic;
+	
+	public static Sound fx_targetReached;
+	public static Sound fx_missionAccomplished;
 	
 	public static void load() {
 		arrow = new Texture(Gdx.files.internal("arrow.png"));
@@ -37,15 +43,21 @@ public class AssetLoader {
 		
 		mapTex = new Texture(Gdx.files.internal("LesserAntilles.png"));
 		mapBackground = new Texture(Gdx.files.internal("map_background.png"));
+		mapTex_tut0 = new Texture(Gdx.files.internal("Tutorial0_map.png"));
+		mapTex_tut1 = new Texture(Gdx.files.internal("Tutorial1_map.png"));
 		
 		nexusLogo = new Texture(Gdx.files.internal("nexusLogo.png"));
 		titleScreen = new Texture(Gdx.files.internal("titleScreen.png"));
 		
 		paddleSplash = Gdx.audio.newSound(Gdx.files.internal("paddleSplash.wav"));
 		
-		font = new BitmapFont();
-		font.getData().scale(0.25f);
-		font.getRegion().getTexture().setFilter(TextureFilter.Linear, TextureFilter.Linear);
+		font = getFont();
+		
+		gameMusic = Gdx.audio.newMusic(Gdx.files.internal("areito de maguana v1.mp3"));
+		gameMusic.setLooping(true);
+		
+		fx_targetReached = Gdx.audio.newSound(Gdx.files.internal("FX_targetreached.wav"));
+		fx_missionAccomplished = Gdx.audio.newSound(Gdx.files.internal("FX_missionaccomplished.wav"));
 	}
 
 	public static void dispose() {
@@ -64,6 +76,8 @@ public class AssetLoader {
 		
 		mapTex.dispose();
 		mapBackground.dispose();
+		mapTex_tut0.dispose();
+		mapTex_tut1.dispose();
 
 		nexusLogo.dispose();
 		titleScreen.dispose();
@@ -71,5 +85,16 @@ public class AssetLoader {
 		paddleSplash.dispose();
 		
 		font.dispose();
+		
+		gameMusic.dispose();
+		fx_targetReached.dispose();
+		fx_missionAccomplished.dispose();
+	}
+	
+	public static BitmapFont getFont() {
+		BitmapFont font = new BitmapFont();
+		font.getData().scale(0.25f);
+		font.getRegion().getTexture().setFilter(TextureFilter.Linear, TextureFilter.Linear);
+		return font;
 	}
 }

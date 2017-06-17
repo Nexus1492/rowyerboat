@@ -1,6 +1,7 @@
 package com.rowyerboat.scientific;
 
 import com.badlogic.gdx.math.Vector2;
+import com.rowyerboat.helper.Settings;
 
 /** 
  * Class to calculate various units to other relevant units.
@@ -19,9 +20,17 @@ public abstract class Transverter {
 	static float worldHeight = 9600f;
 	
 	/** latitude in real-world coordinates */
-	static float minLon = 292, maxLon = 301.1f;
+	static float minLon = 292, maxLon = 301f;
 	/** longitude in real-world coordinates */
-	static float minLat = 9.5f, maxLat = 19.1f;
+	static float minLat = 9.5f, maxLat = 19f;
+	
+	public static Vector2 GPStoGame(Vector2 vec) {
+		// case: long0 = zeromeridian
+		Vector2 gpsVec = new Vector2((vec.y + 360 - minLon)/(maxLon - minLon),
+				(vec.x - minLat)/(maxLat - minLat)); // unscaled vector with x, y \in [0, 1]
+		
+		return new Vector2(gpsVec.x * worldWidth, gpsVec.y * worldHeight);
+	}
 	
 	public static Vector2 gameToGPS(Vector2 vec) {
 		return new Vector2(gameToLat(vec.y), gameToLong(vec.x));
@@ -56,8 +65,8 @@ public abstract class Transverter {
 	/** calculate texture coordinates from game coordinates unto the specified texWidth and texHeight */
 	public static Vector2 gameToTexture(Vector2 vec, float texWidth, float texHeight) {
 		Vector2 v = new Vector2();
-		v.x = vec.x / worldWidth * texWidth;
-		v.y = vec.y / worldHeight * texHeight;
+		v.x = vec.x / (float)Settings.map.width * texWidth;
+		v.y = vec.y / (float)Settings.map.height * texHeight;
 		return v;
 	}
 	

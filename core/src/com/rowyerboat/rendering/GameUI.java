@@ -20,6 +20,7 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
@@ -69,7 +70,7 @@ public class GameUI {
 		boat = b;
 		camera3D = c;
 		batch = s;
-		font = AssetLoader.font;
+		font = AssetLoader.getFont();
 		
 		arrowImage = AssetLoader.arrow;
 		circularArrowImage = AssetLoader.circularArrowImage;
@@ -161,7 +162,7 @@ public class GameUI {
 	}
 	
 	public void createUI() {
-		int numBtns = 1, btnSize = 60;
+		int btnSize = 60;
 		Skin skin = new Skin();
 		Pixmap pixmap = new Pixmap(btnSize, btnSize, Format.RGBA8888);
 		pixmap.setColor(new Color(1, 1, 1, 0.25f));
@@ -169,7 +170,7 @@ public class GameUI {
  
 		skin.add("white", new Texture(pixmap));
  
-		BitmapFont bfont = new BitmapFont();
+		BitmapFont bfont = AssetLoader.getFont();
 		bfont.getData().scale(2);
 		bfont.setColor(Color.BLACK);
 		skin.add("default", bfont);
@@ -253,9 +254,10 @@ public class GameUI {
 						1.0f);
 				batch.setColor(arrowCol);
 				float stretchFactor = 2.0f; //Math.max(ratio, 1.0f);
-				batch.draw(arrowImage, x + res/2 - 16, y + res/2 - 16,
-						16, 16, 32, 32, stretchFactor, 1, -boat.getCurrentDir().angle(cameraDirV2) + 90,
-						0, 0, 32, 32, false, false);
+				if (boat.getCurrentDir().len2() != 0)
+					batch.draw(arrowImage, x + res/2 - 16, y + res/2 - 16,
+							16, 16, 32, 32, stretchFactor, 1, -boat.getCurrentDir().angle(cameraDirV2) + 90,
+							0, 0, 32, 32, false, false);
 				batch.setColor(Color.WHITE);
 			}
 		};
@@ -263,7 +265,7 @@ public class GameUI {
 		Actor ticks = new Actor() {
 			@Override
 			public void draw(Batch batch, float parentAlpha) {
-				int num = Settings.mission.targetSize();
+				int num = Settings.getMission().targetSize();
 				for (int i = 0; i < num; ++i) {
 					if (i < Settings.tracker.targetsReachedPointer) {
 						batch.setColor(Color.GREEN);
@@ -278,14 +280,9 @@ public class GameUI {
 		};
 		
 		// define positions
-		zoomIn.setPosition(width - btnSize - 5, height - numBtns++ * (btnSize + 5));
-		zoomOut.setPosition(width - btnSize - 5, height - numBtns++ * (btnSize + 5));
-		debug.setPosition(width - btnSize - 5, height - numBtns++ * (btnSize + 5));
-		hud.setPosition(width - btnSize - 5, height - numBtns++ * (btnSize + 5));
-		mapButton.setPosition(width - btnSize - 5, height - numBtns++ * (btnSize + 5));
 		bars.setPosition(5, viewport.getWorldHeight() - 5);
-		minimap.setPosition(10, 10);
-		ticks.setPosition((stage.getWidth() - Settings.mission.targetSize() * tick.getWidth())/2,
+		minimap.setPosition(10, viewport.getWorldHeight() - 40 - 10 - AssetLoader.circularArrowImage.getHeight());
+		ticks.setPosition((stage.getWidth() - Settings.getMission().targetSize() * tick.getWidth())/2,
 				viewport.getWorldHeight() - tick.getHeight() - 5);
 		
 		zoomIn.addListener(new InputListener() {
@@ -315,16 +312,20 @@ public class GameUI {
 		mapButton.addListener(new ClickListener() {
 			@Override
 			public void clicked(InputEvent event, float x, float y) {
-				Settings.game.setScreen(new WorldMapScreen(Settings.game.getScreen()));
+				Settings.game.setScreen(new WorldMapScreen());
 			}
 		});
 		
+		Table buttonTable = new Table();
+		buttonTable.add(zoomIn).pad(5f).row();
+		buttonTable.add(zoomOut).pad(5f).row();
+		//buttonTable.add(debug).pad(5f).row();
+		//buttonTable.add(hud).pad(5f).row();
+		buttonTable.add(mapButton).pad(5f).row();
+		buttonTable.top().right().setPosition(stage.getWidth(), stage.getHeight());
+		
 		// add actors
-		stage.addActor(zoomIn);
-		stage.addActor(zoomOut);
-		stage.addActor(debug);
-		stage.addActor(hud);
-		stage.addActor(mapButton);
+		stage.addActor(buttonTable);
 		stage.addActor(minimap);
 		stage.addActor(bars);;
 		stage.addActor(ticks);

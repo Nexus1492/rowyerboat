@@ -12,32 +12,42 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.Touchable;
+import com.badlogic.gdx.scenes.scene2d.ui.Cell;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.rowyerboat.game.RowYerBoat;
 import com.rowyerboat.gameobjects.Boat;
+import com.rowyerboat.gameworld.Campaign;
+import com.rowyerboat.gameworld.Mission;
 import com.rowyerboat.helper.AssetLoader;
 import com.rowyerboat.helper.Settings;
 import com.rowyerboat.scientific.Tracker;
 import com.rowyerboat.scientific.Transverter;
 
 public class HighscoreScreen implements Screen {
-	Game game;
+	RowYerBoat game;
+	Mission mission;
 	
 	Stage stage;
 	
-	public HighscoreScreen(Game g, String scores) {
+	public HighscoreScreen(RowYerBoat g, String score1) {
+		this(g, score1, null);
+	}
+	
+	public HighscoreScreen(RowYerBoat g, String score1, String score2) {
 		this.game = g;
+		mission = Settings.getMission();
 		
 		if (Settings.tracker.isWin)
 			updatePersonalHighscore();
 		
-System.out.println("ECHO: " + scores);
-		
-		stage = new HighscoreStage(scores);
+		stage = new HighscoreStage(score1, score2);
 		Gdx.input.setInputProcessor(stage);
 	}
 
@@ -52,10 +62,10 @@ System.out.println("ECHO: " + scores);
 	
 	private void updatePersonalHighscore() {
 		float timeTaken = Settings.tracker.timeTaken;
-		float recordTime = Settings.highscores.getFloat(Settings.mission.id + (Settings.useEnergy ? "ON" : "OFF"),
+		float recordTime = Settings.highscores.getFloat(Settings.getMission().id + (Settings.useEnergy ? "ON" : "OFF"),
 				Float.MAX_VALUE);
 		if (recordTime > timeTaken) {
-			Settings.highscores.putFloat(Settings.mission.id + (Settings.useEnergy ? "ON" : "OFF"), timeTaken);
+			Settings.highscores.putFloat(Settings.getMission().id + (Settings.useEnergy ? "ON" : "OFF"), timeTaken);
 			Settings.highscores.flush();
 		}
 	}
@@ -66,6 +76,7 @@ System.out.println("ECHO: " + scores);
 	}
 	@Override
 	public void show() {
+		Gdx.input.setInputProcessor(stage);
 	}
 	@Override
 	public void pause() {
@@ -78,13 +89,16 @@ System.out.println("ECHO: " + scores);
 	}
 	@Override
 	public void dispose() {
-		stage.getBatch().dispose();
+		stage.dispose();
 	}
 	
-	private class HighscoreStage extends RWYStage {
+	private class HighscoreStage extends RYBStage {
 		
-		public HighscoreStage(String scores) {
+		LabelStyle style;
+		
+		public HighscoreStage(String score1, String score2) {
 			super(new FitViewport(Settings.width, Settings.height), new SpriteBatch());
+			style = new LabelStyle(AssetLoader.getFont(), Color.WHITE);
 			
 			Actor background = new Actor() {
 				@Override
@@ -96,81 +110,48 @@ System.out.println("ECHO: " + scores);
 			background.setPosition(0, 0);
 			addActor(background);
 			
-			boolean win = Settings.tracker.isWin;
-
-			Label.LabelStyle style = new Label.LabelStyle(AssetLoader.font, Color.WHITE);
-			
-			Group scoreGroup = new Group();
-			scoreGroup.setPosition(getWidth()/2, getHeight() * 0.75f);
 			float sep = 40f;
-			addActor(scoreGroup);
 			
-			Table personalscore = new Table();
-			personalscore.add(new Label("Personal score of ", style)).left();
-			personalscore.add(new Label(String.valueOf(Settings.userID)
-					+ String.valueOf(Settings.userData.getInteger("userIDoffset") % 10000), style)).right();
-			personalscore.row();
-			personalscore.add(new Label("Mission: ", style)).left();
-			personalscore.add(new Label(Settings.mission.name, style)).right();
-			personalscore.row();
-			personalscore.add(new Label("Energy: ", style)).left();
-			personalscore.add(new Label(Settings.useEnergy ? "On" : "Off", style)).right();
-			personalscore.row();
-			personalscore.add(new Label("Status: ", style)).left();
-			personalscore.add(new Label(win ? "Accomplished" : "Failed", style)).right();
-			personalscore.row();
-			personalscore.add(new Label("Time: ", style)).left();
-			personalscore.add(new Label(Transverter.secondsToString(Settings.tracker.timeTaken), style)).right();
-			personalscore.row();
-			personalscore.add(new Label("Personal record: ", style)).left();
-			float recordTime = Settings.highscores.getFloat(Settings.mission.id + (Settings.useEnergy ? "ON" : "OFF"), -1);
-			personalscore.add(new Label(recordTime > 0 ? Transverter.secondsToString(recordTime) : "-", style)).right();
-
-			personalscore.top().right().setPosition(-sep/2f, 0);
-			scoreGroup.addActor(personalscore);
+			Table rightTable = createHighscoreTable(score1);
+			Table leftTable;
+			if (score2 == null)
+				leftTable = createPersonalTable();
+			else
+				leftTable = createHighscoreTable(score2);
 			
-			
-			Table globalscore = new Table();
-			globalscore.add(new Label("Global highscore: ", style)).left();
-			globalscore.add(new Label(Settings.mission.name, style)).right();
-			String[] highscores = scores.split("\n");
-			for (int i = 0; i < highscores.length - highscores.length % 2; i+=2) {
-				globalscore.row();
-				globalscore.add(new Label(highscores[i], style)).left();
-				globalscore.add(new Label(Transverter.secondsToString(Float.valueOf(highscores[i+1]) % 10000), style)).right();
-			}
-			
-
-			globalscore.top().left().setPosition(sep/2f, 0);
-			scoreGroup.addActor(globalscore);
+			rightTable.top().left().setPosition(sep/2f, 0);
+			leftTable.top().right().setPosition(-sep/2f, 0);
 			
 			Table buttonTable = new Table();
 			buttonTable.setPosition(getWidth()/2, getHeight() * 0.35f);
-			addActor(buttonTable);
 			
-			TextButton retryButton = new TextButton("Retry", tbs);
+			TextButton retryButton = new TextButton("Retry", skin);
 			retryButton.addListener(new ClickListener() {
 				@Override
 				public void clicked(InputEvent event, float x, float y) {
-					Settings.mission.reset();
-					game.setScreen(new GameScreen(game));
+					game.setScreen(new GameScreen(), false);
 				}
 			});
 			
-			final TextButton mapButton = new TextButton("Show Map", tbs);
+			final TextButton mapButton = new TextButton("Show Map", skin);
 			mapButton.addListener(new ClickListener() {
 				@Override
 				public void clicked(InputEvent event, float x, float y) {
-					game.setScreen(new WorldMapScreen(game.getScreen()));
+					game.setScreen(new WorldMapScreen());
 					mapButton.setChecked(false);
 				}
 			});
 			
-			TextButton menuButton = new TextButton("Back to Main Menu", tbs);
-			menuButton.addListener(new ClickListener() {
+			TextButton menuButton = new BackButton("Back to Menu", skin);
+			
+			TextButton nextMissionButton = new TextButton("Next Mission", skin);
+			nextMissionButton.addListener(new ClickListener() {
 				@Override
 				public void clicked(InputEvent event, float x, float y) {
-					game.setScreen(new MainScreen(game));
+					Settings.setMission(Campaign.getCampaign(mission.campaignID)
+							.nextMission(Settings.missionID).id);
+					//game.setScreen(new GameScreen());
+					game.setScreen(new MissionSelectionScreen(), false);
 				}
 			});
 			
@@ -178,12 +159,92 @@ System.out.println("ECHO: " + scores);
 			buttonTable.add(retryButton.pad(10f)).pad(padding);
 			buttonTable.add(mapButton.pad(10f)).pad(padding);
 			buttonTable.add(menuButton.pad(10f)).pad(padding);
+			buttonTable.add(nextMissionButton.pad(10f)).pad(padding);
+			if (Campaign.getCampaign(Settings.missionID).nextMission(Settings.missionID) == null
+					|| !Settings.tracker.isWin) {
+				nextMissionButton.setChecked(true);
+				nextMissionButton.setTouchable(Touchable.disabled);
+			}
+			
+			Table masterTable = new Table();
+			masterTable.add(leftTable).center().top();
+			masterTable.add(rightTable).center().top();
+			masterTable.row();
+			masterTable.add(buttonTable).colspan(2);
+			masterTable.center();
+			masterTable.setPosition(getWidth()/2, getHeight()/2);
+			addActor(masterTable);
+
+			if (score2 != null || Settings.game.getLastScreen().getClass() != MainScreen.class ||
+					Settings.game.getScreen().getClass() == MissionSelectionScreen.class) {
+				retryButton.setVisible(false);
+				mapButton.setVisible(false);
+				nextMissionButton.setVisible(false);
+			}
+		}
+
+		/**
+		 * Personal (left) table. Will display the following content:
+		 * "Personal score of *PLAYER-ID*-*FIRST 4 DIGITS OF USErIDoFFSET*
+		 * Mission: *MISSION NAME*
+		 * Energy: *ENERGY SETTINGS*
+		 * Status: *isWIN?*
+		 * Time: *TimeTaken*
+		 * Personal record: *PERSONAL RECORD*
+		 * 
+		 * @return
+		 */
+		private Table createPersonalTable() {
+			boolean win = Settings.tracker.isWin;
+			float timeTaken = Settings.tracker.timeTaken;
+			float recordTime = Settings.highscores.getFloat(mission.id + (Settings.useEnergy ? "ON" : "OFF"), -1);
+			String shortOffset = Settings.userData.getString("userIDoffset");
+			
+			Table personalscore = new Table();
+			personalscore.add(new Label("Personal score of ", style)).left();
+			personalscore.add(new Label(String.valueOf(Settings.userID) + "-" 
+					+ shortOffset.substring(shortOffset.length() - 4) ,style)).right();
+					//+ String.valueOf(Settings.userData.getInteger("userIDoffset") % 10000), style)).right();
+			personalscore.row();
+			personalscore.add(new Label("Mission: ", style)).left();
+			personalscore.add(new Label(mission.name, style)).right();
+			personalscore.row();
+			personalscore.add(new Label("Energy: ", style)).left();
+			personalscore.add(new Label(Settings.useEnergy ? "On" : "Off", style)).right();
+			personalscore.row();
+			personalscore.add(new Label("Status: ", style)).left();
+			personalscore.add(new Label(win || (recordTime > 0 && timeTaken == 0.5f) ?
+					"Accomplished" : "Failed", style)).right();
+			personalscore.row();
+			personalscore.add(new Label("Time: ", style)).left();
+			personalscore.add(new Label(timeTaken != 0.5f ? Transverter.secondsToString(timeTaken) : "-", style)).right();
+			personalscore.row();
+			personalscore.add(new Label("Personal record: ", style)).left();
+			personalscore.add(new Label(recordTime > 0 ? Transverter.secondsToString(recordTime) : "-", style)).right();
+			return personalscore;
 		}
 		
+		private Table createHighscoreTable(String highscore) {
+			Table table = new Table();
+			table.add(new Label("Global highscore: ", style)).left();
+			table.add(new Label(mission.name, style)).right();
+			String[] echo = highscore.split("\n");
+			for (int i = 0; i < Math.min(echo.length - echo.length % 2, 10); i+=2) {
+				table.row();
+				table.add(new Label(echo[i], style)).left();
+				String nextEntry;
+				if (highscore.contains("Error"))
+					nextEntry = echo[i+1];
+				else
+					nextEntry = Transverter.secondsToString(Float.valueOf(echo[i+1]) % 10000);
+				table.add(new Label(nextEntry, style)).right();
+			}
+			return table;
+		}
 
 	}
 	
-	private String debug() {
+	/*private String debug() {
 		Settings.tracker = new Tracker();
 		Settings.tracker.isWin = false;
 		Settings.tracker.timeTaken = 79;
@@ -197,5 +258,5 @@ System.out.println("ECHO: " + scores);
 				"16.02\n" +
 				"wurst-8975\n" +
 				"19.91\n";
-	}
+	}*/
 }

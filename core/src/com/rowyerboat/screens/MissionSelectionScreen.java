@@ -1,6 +1,6 @@
 package com.rowyerboat.screens;
 
-import javax.swing.GroupLayout.Alignment;
+import java.util.HashMap;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
@@ -11,47 +11,42 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.InputEvent.Type;
 import com.badlogic.gdx.scenes.scene2d.ui.ButtonGroup;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
 import com.badlogic.gdx.scenes.scene2d.ui.WidgetGroup;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.rowyerboat.gameworld.Campaign;
+import com.rowyerboat.gameworld.Campaign.CampaignID;
 import com.rowyerboat.gameworld.Mission;
 import com.rowyerboat.gameworld.Mission.MissionID;
 import com.rowyerboat.helper.AssetLoader;
+import com.rowyerboat.helper.HttpPoster;
 import com.rowyerboat.helper.Settings;
 import com.rowyerboat.scientific.Tracker;
 
 public class MissionSelectionScreen implements Screen {
-	
-	MainScreen lastScreen;
 
 	Stage stage;
 	Batch batch;
- 
-	Game game;
 	
 	Texture background;
 	
 	Mission lastlySelectedMission;
 	MissionID missionID;
 	
-	public MissionSelectionScreen(Game g, MainScreen s) {
-		game = g;
-		lastScreen = s;
-		lastlySelectedMission = Settings.mission;
-		missionID = Settings.mission.id;
+	public MissionSelectionScreen() {
+		lastlySelectedMission = Settings.getMission();
+		missionID = lastlySelectedMission.id;
 		
 		stage = new MissionSelectionStage();
 		batch = stage.getBatch();
 		
 		background = AssetLoader.titleScreen;
-		
 		
 		Gdx.input.setInputProcessor(stage);
 	}
@@ -89,6 +84,7 @@ public class MissionSelectionScreen implements Screen {
 
 	@Override
 	public void show() {
+		Gdx.input.setInputProcessor(stage);
 	}
 
 	@Override
@@ -96,195 +92,246 @@ public class MissionSelectionScreen implements Screen {
 		stage.dispose();
 	}
 	
-	private class MissionSelectionStage extends RWYStage {
+	private class MissionSelectionStage extends RYBStage {
 		
 		private ButtonGroup<TextButton> missionButtonUncheckGroup;
+		private ButtonGroup<TextButton> campaignButtonUncheckGroup;
 		private TextButton descriptionField;
+
+		private HashMap<MissionID, TextButton> missionButtons;
+		private HashMap<CampaignID, Table> missionButtonTables;
+		private HashMap<CampaignID, TextButton> campaignButtons;
+		
+		private HashMap<CampaignID, MissionID> lastSelectedCampaignMission;
+		
+		float buttonPad;
+		float missionButtonGroupWidth;
 		
 		public MissionSelectionStage() {
 			super();
+			lastSelectedCampaignMission = new HashMap<CampaignID, MissionID>();
+			
+			//skin = new Skin();
+			skin.remove("default", TextButtonStyle.class);
+			skin.remove("default", Texture.class);
+			skin.add("default", AssetLoader.getFont());
 			//Color std = new Color(0.7f, 0.7f, 0.7f, 0.5f);
 			Color std = Color.DARK_GRAY;
 			std.a = 0.5f;
 			Pixmap pixmap = new Pixmap(100, 50, Format.RGBA8888);
 			pixmap.setColor(std);
 			pixmap.fill();
-			skin.add("mission", new Texture(pixmap));
-
-			// Background of the description field
-			int descFieldWidth = Settings.width * 2/3, descFieldHeight = Settings.height/3 + 20; //TODO rubbish
-			pixmap = new Pixmap(descFieldWidth, descFieldHeight, Format.RGBA8888);
-			pixmap.setColor(std);
-			pixmap.fill();
-			skin.add("text", new Texture(pixmap));
+			skin.add("default", new Texture(pixmap));
 			
-			tbs = new TextButtonStyle();
-			tbs.up = skin.newDrawable("mission", std);
-			tbs.checked = skin.newDrawable("mission", Color.LIGHT_GRAY);
+			// default button style
+			TextButtonStyle tbs = new TextButtonStyle();
+			tbs.up = skin.newDrawable("default", std);
+			tbs.checked = skin.newDrawable("descField");
 			tbs.font = skin.getFont("default");
+			skin.add("default", tbs);
+
+			// accomplished mission button style
+			tbs = new TextButtonStyle();
+			tbs.up = skin.newDrawable("default", std);
+			tbs.down = skin.newDrawable("default", Color.DARK_GRAY);
+			tbs.checked = skin.newDrawable("descField");
+			tbs.font = skin.getFont("default");
+			tbs.fontColor = Color.GREEN;
+			skin.add("accomplished", tbs);
 			
-			final TextButton campaign01 = new TextButton("Campaign01", tbs);
-			final TextButton campaign02 = new TextButton("Campaign02", tbs);
-			final TextButton mission01 = new TextButton("Mission01", tbs);
-			final TextButton mission02 = new TextButton("Mission02", tbs);
-			final TextButton mission03 = new TextButton("Mission03", tbs);
-			final TextButton apply = new TextButton("Apply", tbs);
-			final TextButton cancel = new TextButton("Cancel", tbs);
-			final TextButton showMap = new TextButton("Show on map", tbs);
+			skin.add("descBackground", AssetLoader.mapBackground);
+
+			missionButtons = new HashMap<MissionID, TextButton>();
+			missionButtonTables = new HashMap<CampaignID, Table>();
+			campaignButtons = new HashMap<CampaignID, TextButton>();
+			
+			final TextButton apply = new TextButton("Apply", skin);
+			final TextButton cancel = new TextButton("Cancel", skin);
+			final TextButton showMap = new TextButton("Show Map", skin);
+			final TextButton showHighscores = new TextButton("Show Highscores", skin);
 			
 			missionButtonUncheckGroup = new ButtonGroup<TextButton>();
 			missionButtonUncheckGroup.setUncheckLast(true);
-			missionButtonUncheckGroup.add(mission01, mission02, mission03);
 			missionButtonUncheckGroup.uncheckAll();
-			
-			ButtonGroup<TextButton> campaignButtonUncheckGroup = new ButtonGroup<TextButton>();
+			missionButtonUncheckGroup.setMinCheckCount(1);
+			campaignButtonUncheckGroup = new ButtonGroup<TextButton>();
 			campaignButtonUncheckGroup.setUncheckLast(true);
-			campaignButtonUncheckGroup.add(campaign01, campaign02);
 			campaignButtonUncheckGroup.uncheckAll();
 			
-			tbs = new TextButtonStyle();
-			tbs.up = skin.newDrawable("text", Color.LIGHT_GRAY);
-			tbs.font = skin.getFont("default");
+			int descFieldWidth = Settings.width * 2/3, descFieldHeight = Settings.height/3 + 20; //TODO rubbish
+			descriptionField = new TextField(descFieldWidth, descFieldHeight);
 
-			descriptionField = new TextButton("", tbs);
-			descriptionField.getLabel().setWrap(true);
-			descriptionField.setDisabled(true);
-			descriptionField.setPosition(100, 0);
-			
-			setMissionButtonListener(mission01, MissionID.Pottery);
-			setMissionButtonListener(mission02, MissionID.JaguarTeeth);
-			setMissionButtonListener(mission03, MissionID.Placeholder);
 			apply.addListener(new ClickListener() {
 				@Override
 				public void clicked(InputEvent event, float x, float y) {
-					game.setScreen(lastScreen);
+					Settings.game.setScreen(new GameScreen(), false);
 				}
 			});
 			cancel.addListener(new ClickListener() {
 				@Override
 				public void clicked(InputEvent event, float x, float y) {
-					Settings.updateMission(lastlySelectedMission.id);
-					game.setScreen(lastScreen);
+					Settings.setMission(lastlySelectedMission.id);
+					Settings.game.returnToLastScreen();
 				}
 			});
 			showMap.addListener(new ClickListener() {
 				@Override
 				public void clicked(InputEvent event, float x, float y) {
-					Settings.tracker = new Tracker();
-					game.setScreen(new WorldMapScreen(game.getScreen()));
+					Settings.game.setScreen(new WorldMapScreen());
 					showMap.setChecked(false);
 				}
 			});
+			showHighscores.addListener(new ClickListener() {
+				@Override
+				public void clicked(InputEvent event, float x, float y) {
+					//game.setScreen(new HighscoreScreen(game, game.getScreen(), "schnitzel-1320454\n300\nhacker-19875\n200"));
+					HttpPoster.showOnlyHighscores(missionID, Settings.useEnergy);
+					showHighscores.setChecked(false);
+				}
+			});
 
-			float buttonPad = 2f;
-			float missionButtonGroupWidth = 100 + buttonPad;
+			buttonPad = 2f;
+			missionButtonGroupWidth = 100 + buttonPad;
 			
-			Table campaignButtonGroup = new Table();
-			campaignButtonGroup.add(campaign01.pad(buttonPad)).pad(buttonPad).padBottom(0f).padLeft(10f);
-			campaignButtonGroup.add(campaign02.pad(buttonPad)).pad(buttonPad).padBottom(0f);
-			campaignButtonGroup.bottom().left();
-
-			final Table missionButtonGroup1 = new Table();
-			missionButtonGroup1.add(mission01).pad(buttonPad).padRight(0).padTop(10f);
-			missionButtonGroup1.row();
-			missionButtonGroup1.add(mission02).pad(buttonPad).padRight(0);
-			missionButtonGroup1.row();
-			missionButtonGroup1.add(mission03).pad(buttonPad).padRight(0);
-			missionButtonGroup1.top().right().setPosition(0, 0);
-			
-			final Table missionButtonGroup2 = new Table();
-			missionButtonGroup2.add(mission03).pad(buttonPad).padRight(0).padTop(10f);
-			missionButtonGroup2.top().right().setPosition(0, 0);
-			missionButtonGroup2.setVisible(false);
+			Table campaignButtonTable = createCampaignTable();
+			/*campaignButtonTable.add(campaign01.pad(buttonPad)).pad(buttonPad).padBottom(0f).padLeft(10f);
+			campaignButtonTable.add(campaign02.pad(buttonPad)).pad(buttonPad).padBottom(0f);
+			campaignButtonTable.bottom().left();*/
 
 			WidgetGroup campaignMissions = new WidgetGroup();
 			campaignMissions.setWidth(missionButtonGroupWidth);
-			campaignMissions.addActor(missionButtonGroup1);
-			campaignMissions.addActor(missionButtonGroup2);
-			campaignMissions.setWidth(missionButtonGroupWidth);
+			for (CampaignID id : missionButtonTables.keySet())
+				campaignMissions.addActor(missionButtonTables.get(id));
 			
 			Table controlButtonGroup = new Table();
 			float controlButtonPad = 10f;
-			controlButtonGroup.add(apply).pad(controlButtonPad);
-			controlButtonGroup.add(cancel).pad(controlButtonPad);
+			controlButtonGroup.add(apply.pad(10f)).pad(controlButtonPad);
+			controlButtonGroup.add(cancel.pad(10f)).pad(controlButtonPad);
 			controlButtonGroup.add(showMap.pad(10f)).pad(controlButtonPad);
+			controlButtonGroup.add(showHighscores.pad(10f)).pad(controlButtonPad);
 			controlButtonGroup.setPosition(getWidth()/2, getHeight()/2);
 			
-			float descriptionFieldHeight = getHeight() * 0.67f;
 			// masterTable holds all other tables/groups
 			// due to some bug, the first column has to be empty so the
 			// WidgetGroup "campaignMissions" is showing
+			float descriptionFieldHeight = getHeight() * 0.67f;
 			Table masterTable = new Table();
 
 			addActor(masterTable);
 			masterTable.center().setPosition(getWidth()/2, getHeight()/2);
 			masterTable.add();
-			masterTable.add(campaignButtonGroup).left().bottom();
+			masterTable.add(campaignButtonTable).left().bottom();
 			masterTable.row();
 			masterTable.add(campaignMissions).top().right();
-			masterTable.add(descriptionField.pad(10f)).height(descriptionFieldHeight).top().left();
+			masterTable.add(descriptionField.pad(10f))
+				.height(descriptionFieldHeight).width(descFieldWidth)
+				.top().left();
 			masterTable.row();
 			masterTable.add();
 			masterTable.add(controlButtonGroup).center();
 			
-			campaign01.addListener(new ClickListener() {
-				@Override
-				public void clicked(InputEvent event, float x, float y) {
-					missionButtonGroup1.setVisible(true);
-					missionButtonGroup2.setVisible(false);
-					TextButton btn = (TextButton) missionButtonGroup1.getChildren().get(0);
-					fireButton(btn);
-				}
-			});
-			campaign02.addListener(new ClickListener() {
-				@Override
-				public void clicked(InputEvent event, float x, float y) {
-					missionButtonGroup1.setVisible(false);
-					missionButtonGroup2.setVisible(true);
-					TextButton btn = (TextButton) missionButtonGroup2.getChildren().get(0);
-					fireButton(btn);
-				}
-			});
-			
-			// inital checking
-			switch (missionID) {
-			case Pottery:
-				mission01.setChecked(true);
-				campaign01.setChecked(true);
-				break;
-			case JaguarTeeth:
-				mission02.setChecked(true);
-				campaign01.setChecked(true);
-				break;
-			case Placeholder:
-				mission03.setChecked(true);
-				campaign02.setChecked(true);
-				missionButtonGroup2.setVisible(true);
-				missionButtonGroup1.setVisible(false);
-				break;
-			}
+			fireButton(campaignButtons.get(lastlySelectedMission.campaignID));
+			fireButton(missionButtons.get(lastlySelectedMission.id));
 			
 			descriptionField.setText(Mission.getDesc(missionID));
 		}
 		
-		private void fireButton(TextButton btn) {
-			InputEvent event = new InputEvent();
-			event.setType(Type.touchDown);
-			btn.fire(event);
-			event = new InputEvent();
-			event.setType(Type.touchUp);
-			btn.fire(event);
+		private Table createCampaignTable() {
+			Table campaignTable = new Table();
+			for (CampaignID id : CampaignID.values()) {
+				if (Settings.campaignProgress.getBoolean(id.toString() + "_UNLOCKED", false)) {
+					final TextButton campaignButton = addCampaignButton(id);
+					if (campaignButton != null)
+						campaignTable.add(campaignButton.pad(10f)).pad(buttonPad).padBottom(0f);
+					
+					campaignButtons.put(id, campaignButton);
+				}
+			}
+			campaignTable.getCells().get(0).padLeft(10f);
+			campaignTable.bottom().left();
+			
+			return campaignTable;
+		}
+		
+		/**
+		 * add campaign by ID (read code how it's processed, not that hard).
+		 * 
+		 * @param id
+		 * @return TextButton for the campaign
+		 */
+		private TextButton addCampaignButton(CampaignID id) {
+			Campaign campaign = Campaign.getCampaign(id);
+			if (campaign.campaignMissions.size() == 0)
+				return null;
+			// if all missions are accomplished, color in green
+			TextButtonStyle style = campaign.accomplishedMissions == campaign.campaignMissions.size() ?
+					skin.get("accomplished", TextButtonStyle.class) : skin.get(TextButtonStyle.class);
+			final TextButton campaignButton = new TextButton(id.getName(), style);
+			setCampaignButtonListener(campaignButton, id);
+
+			Table missionButtonTable = new Table();
+			
+			for (int i = 0; i < campaign.campaignMissions.size(); ++i) {
+				missionButtonTable.row();
+
+				Mission mis = campaign.campaignMissions.get(i);
+				
+				style = Settings.campaignProgress.getString(mis.id.toString(), null) != null ?
+						skin.get("accomplished", TextButtonStyle.class) : skin.get(TextButtonStyle.class);
+				final TextButton misButton = new TextButton(String.format("Mission%2d", i+1), style);
+				setMissionButtonListener(misButton, mis.id);
+				
+				missionButtonTable.add(misButton).pad(buttonPad).padRight(0);
+				missionButtonUncheckGroup.add(misButton);
+				missionButtons.put(mis.id, misButton);
+			}
+			missionButtonTable.getCells().get(0).padTop(10f);
+			missionButtonTable.top().right();
+			
+			missionButtonTables.put(id, missionButtonTable);
+			campaignButtonUncheckGroup.add(campaignButton);
+			
+			return campaignButton;
+		}
+		
+		private void setCampaignButtonListener(final TextButton btn, final CampaignID id) {
+			btn.addListener(new ClickListener() {
+			@Override
+			public void clicked(InputEvent event, float x, float y) {
+				// set the first missionButtonGroup visible, the others invisible
+				for (CampaignID cID : missionButtonTables.keySet()) {
+					if (cID != id)
+						missionButtonTables.get(cID).setVisible(false);
+					else
+						missionButtonTables.get(id).setVisible(true);
+						
+				}
+				Campaign campaign = Campaign.getCampaign(id);
+				MissionID missionID = lastSelectedCampaignMission.get(campaign.id);
+				if (campaign.isFinished && missionID == null)
+					missionID = campaign.campaignMissions.get(0).id;
+				else if (missionID == null) {
+					for (Mission mis : campaign.campaignMissions)
+						if (Settings.campaignProgress.getString(mis.id.toString(), null) == null) {
+							missionID = mis.id;
+							break;
+						}
+				}
+				fireButton(missionButtons.get(missionID));
+			}
+		});
 		}
 		
 		private void setMissionButtonListener(final TextButton btn, final MissionID id) {
 			btn.addListener(new ClickListener() {
 				@Override
 				public void clicked(InputEvent event, float x, float y) {
-					missionButtonUncheckGroup.uncheckAll();
+					//missionButtonUncheckGroup.uncheckAll();
 					btn.setChecked(true);
 					missionID = id;
 					descriptionField.setText(Mission.getDesc(missionID));
-					Settings.updateMission(missionID);
+					Settings.setMission(missionID);
+					lastSelectedCampaignMission.put(id.getCampaignID(), id);
 				}
 			});
 		}

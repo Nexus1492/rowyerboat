@@ -16,7 +16,6 @@ import com.rowyerboat.rendering.GameRenderer;
 public class DebugWorldScreen extends GameRenderer {
 	
 	CameraInputController camControl;
-	private GameWorld world;
 	
 	private int debugMode = 0;
 	

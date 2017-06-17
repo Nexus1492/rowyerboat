@@ -4,25 +4,29 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.TimeUtils;
+import com.rowyerboat.game.RowYerBoat;
+import com.rowyerboat.gameworld.Campaign;
 import com.rowyerboat.gameworld.GameMap;
 import com.rowyerboat.gameworld.GameWorld;
 import com.rowyerboat.gameworld.Mission;
+import com.rowyerboat.gameworld.Campaign.CampaignID;
 import com.rowyerboat.gameworld.Mission.MissionID;
 import com.rowyerboat.rendering.GameRenderer;
 import com.rowyerboat.rendering.GameRenderer.CameraMode;
 import com.rowyerboat.scientific.Tracker;
 
 public class Settings {
-	public static Game game;
+	public static RowYerBoat game;
 	
 	public static boolean online = false;
 	
 	public static Preferences highscores;
 	public static Preferences userData;
 	public static Preferences lastSession;
+	public static Preferences campaignProgress;
 	public static String userID;
+	public static String userIDOffset;
 	public static boolean firstTime;
 	
 	// Screen resolution
@@ -41,8 +45,8 @@ public class Settings {
 	// set by menu screen
 	public static GameMap map;
 
-	// set by missionSelection screen
-	public static Mission mission;
+	// set by missionSelection screen and on startup
+	private static Mission mission; // needs to be private in order to not mess up things, call setMission() instead
 	public static MissionID missionID;
 	public static boolean useEnergy;
 	
@@ -56,21 +60,23 @@ public class Settings {
 	public static void init(Game g) {
 		MathUtils.random.setSeed(TimeUtils.nanoTime());
 		
-		game = g;
+		game = (RowYerBoat) g;
 		highscores = Gdx.app.getPreferences("rowyerboat.highscores");
 		userData = Gdx.app.getPreferences("rowyerboat.userData");
 		lastSession = Gdx.app.getPreferences("rowyerboat.lastSession");
+		campaignProgress = Gdx.app.getPreferences("rowyerboat.campaignProgress");
 		
 		checkVersion();
 		
 		userID = userData.getString("userID", "");
+		userIDOffset = userData.getString("userIDoffset", "");
 		
 		useEnergy = lastSession.getBoolean("lastMissionEnergy", false);
 		
 		// Read out the last Mission
-		mission = Mission.getMission(MissionID.valueOf(lastSession.getString("lastMission",
-				MissionID.Pottery.toString()))); // if no last mission is given, set lastMission to POTTERY ACQUISITION
-		Settings.tracker = new Tracker();
+		setMission(Mission.getMission(MissionID.valueOf(
+				lastSession.getString("lastMission", MissionID.Pottery.toString())
+				)).id); // if no last mission is given, set lastMission to POTTERY ACQUISITION
 		
 		firstTime = userData.getBoolean("firstTime", true);
 		
@@ -91,7 +97,7 @@ public class Settings {
 			userData.remove("lastMission");
 			userData.remove("lastMissionEnergy");
 			lastSession.putBoolean("lastMissionEnergy", false);
-			updateMission(MissionID.Pottery);
+			setMission(MissionID.Pottery);
 		}
 		if (version < 1.03f) {
 			// Bugfix: Highscores are not properly saved (only for "Mission01ON"/"Mission01OFF")
@@ -114,12 +120,20 @@ public class Settings {
 				userData.putString("userIDoffset", "-" + userData.getString("userIDoffset"));
 		}
 		if (version < 1.04 && version < curr_version) {
-			Gdx.app.getPreferences("logStack").putInteger("stackSize", 0);
+			campaignProgress.putBoolean("TutorialCampaign_UNLOCKED", true);
+			campaignProgress.putBoolean("Campaign01_UNLOCKED", true);
+			campaignProgress.putBoolean("Campaign02_UNLOCKED", false);
+			
+			lastSession.putString("lastMission", MissionID.Tutorial0.toString());
+			lastSession.putBoolean("lastMissionEnergy", false);
+			
+			userData.putBoolean("tutorialDisplayed", true);
 		}
 		userData.putFloat("version", curr_version);
 		userData.flush();
 		lastSession.flush();
 		highscores.flush();
+		campaignProgress.flush();
 	}
 
 	public static void updateEnergy(boolean nrg) {
@@ -133,10 +147,16 @@ public class Settings {
 	 * 
 	 * @param mis
 	 */
-	public static void updateMission(MissionID mis) {
+	public static void setMission(MissionID mis) {
 		missionID = mis;
 		mission = Mission.getMission(missionID);
+		map = mission.map;
 		lastSession.putString("lastMission", mis.toString());
 		lastSession.flush();
+		tracker = new Tracker();
+	}
+
+	public static Mission getMission() {
+		return mission;
 	}
 }

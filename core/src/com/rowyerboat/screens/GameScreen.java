@@ -3,30 +3,30 @@ package com.rowyerboat.screens;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
+import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
 import com.rowyerboat.gameworld.GameWorld;
-import com.rowyerboat.helper.RWYInputReader;
+import com.rowyerboat.helper.AssetLoader;
+import com.rowyerboat.helper.RYBInputReader;
 import com.rowyerboat.helper.Settings;
 import com.rowyerboat.rendering.GameRenderer;
 import com.rowyerboat.scientific.Tracker;
 
 public class GameScreen implements Screen {
-	
-	private Game game;
+	InputMultiplexer gameInput;
 
 	private GameWorld world;
 	private GameRenderer renderer;
 	
 	private boolean doUpdate = false;
 
-	public GameScreen(Game game) {
-		RWYInputReader input = new RWYInputReader(game);
-		InputMultiplexer multi = new InputMultiplexer();
-		multi.addProcessor(input.ges);
-		multi.addProcessor(input);
-		Gdx.input.setInputProcessor(multi);
+	public GameScreen() {
+		RYBInputReader input = new RYBInputReader();
+		gameInput = new InputMultiplexer();
+		gameInput.addProcessor(input.ges);
+		gameInput.addProcessor(input);
+		Gdx.input.setInputProcessor(gameInput);
 		
-		this.game = game;
 		Settings.tracker = new Tracker();
 		this.world = new GameWorld(this);
 		this.renderer = new GameRenderer(world);
@@ -38,6 +38,8 @@ public class GameScreen implements Screen {
 		input.init(world, renderer);
 		
 		doUpdate = true;
+		
+		AssetLoader.gameMusic.play();
 	}
 
 	@Override
@@ -49,14 +51,16 @@ public class GameScreen implements Screen {
 	}
 	
 	public void end(boolean isWin) {
+		AssetLoader.gameMusic.stop();
 		doUpdate = false;
+		Settings.getMission().reset();
 		Settings.tracker.isWin = isWin;
 		Settings.tracker.postPoints();
 	}
 	
 	@Override
 	public void show() {
-		Gdx.app.log("GameScreen", "Show");
+		Gdx.input.setInputProcessor(gameInput);
 		doUpdate = true;
 	}
 

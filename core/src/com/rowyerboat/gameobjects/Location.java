@@ -24,10 +24,14 @@ public class Location {
 	}
 	
 	public Location(String name, Vector2 pos) {
+		this(name, pos, 50);
+	}
+	
+	public Location(String name, Vector2 pos, float hitboxRadius) {
 		this.name = name;
 		this.pos = pos;
 		this.dangerRadius = 0;
-		this.setCircleHitbox(50f);
+		this.setCircleHitbox(hitboxRadius);
 	}
 	
 	public Vector2 getPos() {

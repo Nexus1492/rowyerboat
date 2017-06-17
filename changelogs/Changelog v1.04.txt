@@ -9,3 +9,15 @@
 - reworked the php-script on the serverside. highscores are saved with "[userID]-[userOffset]", but the user only gets to see the last (TODO, might adjust) FOUR digits of the offset (safety reasons). If adjusted, the HighscoreStage table must also be adjusted.
 
 - gameflow is now: disclaimer - (tutorial - ) main menu - game screen - highscores - main menu/map/game screen
+
+TODO
+    + Tutorial missions
+    - Jan's missions
+    + Check if mobile or desktop, save to log => DONE
+    + method to test userID => highscore screen => CHECK
+    + Check version, save to log => DONE
+    + Somehow make sure that the current data is not manipulated => internal vs local => NEEDS TESTING
+    + GameMap must take care of the models or else it will be too complicated => NEEDS TESTING
+    - generate FONTS
+    ~ how to include text boxes for the tutorials?
+    + check if tutorial is succesfully completed, write to log

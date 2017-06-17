@@ -1,5 +1,6 @@
 package com.rowyerboat.scientific;
 
+import java.io.UncheckedIOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -19,6 +20,9 @@ import com.badlogic.gdx.net.HttpParametersUtils;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.rowyerboat.gameobjects.*;
+import com.rowyerboat.gameworld.Campaign;
+import com.rowyerboat.gameworld.Mission;
+import com.rowyerboat.gameworld.Campaign.CampaignID;
 import com.rowyerboat.helper.HttpPoster;
 import com.rowyerboat.helper.Settings;
 
@@ -37,6 +41,7 @@ public class Tracker {
 
 	private float timeElapsed = 0f;
 	private Array<Vector2> points;
+	private Array<Vector2> currentData;
 
 	/** time in milliseconds (realworld) */
 	private Array<Float> times;
@@ -55,25 +60,31 @@ public class Tracker {
 	 * actually reached (1) or not (0)
 	 */
 	public Vector3[] targetsReached;
-	public int targetsReachedPointer = 0;
+	public int targetsReachedPointer = -1;
 
 	public boolean isWin;
 	
 	public Tracker() {
 		timeElapsed = 0f;
 		points = new Array<Vector2>();
+		currentData = new Array<Vector2>();
 		times = new Array<Float>();
 		times.add(0f);
 		
-		points.add(Settings.mission.initialBoatPos);
+		Mission mission = Settings.getMission();
+		points.add(mission.initialBoatPos);
+		currentData.add(new Vector2(0, 0));
 
-		targetsReached = new Vector3[Settings.mission.targetSize()];
-		for (int i = 0; i < Settings.mission.targetSize(); ++i) {
-			targetsReached[i] = new Vector3(Settings.mission.getTargets().get(i).getPos(), 0);
+		targetsReached = new Vector3[mission.targetSize()];
+		for (int i = 0; i < mission.targetSize(); ++i) {
+			targetsReached[i] = new Vector3(mission.getTargets().get(i).getPos(), 0);
 		}
 	}
 
 	public void update(float delta) {
+		if (boat == null)
+			throw new NullPointerException("Must set a boat in Tracker via Tracker.setBoat()");
+		
 		if (startTime == null) {
 			Date date = new Date(TimeUtils.millis());
 			SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
@@ -84,12 +95,14 @@ public class Tracker {
 		timeTaken += delta;
 		if (timeElapsed > interval) {
 			points.add(boat.getPos().cpy());
+			currentData.add(boat.currentDisplacement.cpy());
 			times.add(timeTaken);
 			timeElapsed = 0f;
 		}
 	}
 
 	public void targetReached() {
+		targetsReachedPointer = Math.max(0, targetsReachedPointer);
 		targetsReached[targetsReachedPointer++] = new Vector3(boat.getPos(), 1);
 	}
 
@@ -97,24 +110,42 @@ public class Tracker {
 		return points;
 	}
 
+	/** 
+	 * Send HttpPost to Server with information from Tracker object,
+	 * also update the campaign progress score
+	 */
 	public void postPoints() {
+		Mission mission = Settings.getMission();
+		if (isWin) { //update progress
+			Settings.campaignProgress.putString(Settings.missionID.toString(), mission.campaignID.toString());
+			Settings.campaignProgress.flush();
+			Campaign.getCampaign(Settings.missionID).updateProgress();
+		}
+		
 		StringBuilder content = new StringBuilder();
 		for (int i = 0; i < points.size && i < times.size; ++i) {
 			content.append(times.get(i).toString() + ", ");
 			Vector2 vec = Transverter.gameToGPS(points.get(i));
-			content.append(vec.x + ", " + vec.y + "\n");
+			content.append(vec.x + ", " + vec.y + ", ");
+			vec = currentData.get(i);
+			content.append(vec.x + ", " + vec.y);
+			content.append("\n");
 		}
 
 		HashMap<String, String> map = new HashMap<String, String>();
 		map.put("ID", Settings.userID + Settings.userData.getString("userIDoffset"));
-		map.put("Mission", Settings.mission.name);
+		map.put("Mission", mission.id.toString());
+		map.put("Version", String.valueOf(Settings.userData.getFloat("version")));
+		map.put("Platform", Gdx.app.getType().toString());
+		map.put("TutorialFinished", "" + Campaign.getCampaign(CampaignID.TutorialCampaign).isFinished);
 		map.put("MissionAccomplished", isWin ? "TRUE" : "FALSE");
 		map.put("Energy", Settings.useEnergy ? "ON" : "OFF");
 		map.put("StartTime", startTime == null ? "NEVER" : startTime);
 		map.put("log", content.toString());
-		map.put("timeTaken", "" + timeTaken);
+		map.put("TimeTaken", "" + timeTaken);
 
-		HttpPoster.sendLog(map, true);
+		if (timeTaken > 1) // TODO magic number
+			HttpPoster.sendLog(map, true);
 	}
 
 	public void setBoat(Boat boat) {

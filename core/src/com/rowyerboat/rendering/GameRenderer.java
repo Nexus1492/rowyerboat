@@ -178,7 +178,7 @@ public class GameRenderer {
     	staticShaper = new ShapeRenderer();
     	staticShaper.setProjectionMatrix(hudCam.combined);
     	
-    	font = AssetLoader.font;
+    	font = AssetLoader.getFont();
 
 		this.gameUI = new GameUI(boat, camera, staticBatch);
 	}
@@ -311,22 +311,7 @@ public class GameRenderer {
         
         // ********************************** TODO ISLANDS **************************
         
-        islandInstances = new Array<ModelInstance>();
-        // Use Model based on map
-        Model islandModel = null;
-        switch(Settings.map.ID) {
-        case lesserAntilles:
-        	islandModel = modelLoader.loadModel(Gdx.files.getFileHandle("models/lesserAntillesDemo.g3db",
-        			Files.FileType.Internal));
-        	break;
-        case caribbean:
-        	islandModel = arrowModel;
-        	break;
-        }
-        
-	    ModelInstance islandInstance = new ModelInstance(islandModel, "all");
-	    islandInstance.transform.setToRotation(1, 0, 0, 90f).scale(1f, 0.5f, 1f);
-	    islandInstances.add(islandInstance);
+        islandInstances = Settings.map.islandInstances;
 	    
         /* not yet implemented properly 
          * will fill the instances array with the proper modelinstances (based on order)
@@ -452,9 +437,9 @@ public class GameRenderer {
     		float angle = boatDir.angle(cameraDirV2);
     		if (Math.abs(angle) > 30) {
     			if (Math.abs(angle) < 60)
-    				degreePerFrame *= 2.5;
-    			else
     				degreePerFrame *= 5;
+    			else
+    				degreePerFrame *= 15;
     		}
 			if (angle < 1)
 				cameraDirV2.rotate(degreePerFrame);
@@ -465,17 +450,19 @@ public class GameRenderer {
     		
     	case dynamicNear:
     		degreePerFrame = 0.1f;
-    		angle = boatDir.angle(cameraDirV2);
+    		angle = cameraDirV2.angle(boatDir) * 3;
     		if (Math.abs(angle) > 30) {
     			if (Math.abs(angle) < 60)
     				degreePerFrame *= 5;
     			else
     				degreePerFrame *= 10;
+    			
+    			degreePerFrame = (float) Math.pow(Math.abs(angle)/180f, 1);
     		}
 			if (angle < -5)
-				cameraDirV2.rotate(degreePerFrame);
+				cameraDirV2.rotate(-degreePerFrame);
 			else if (angle > 5)
-				cameraDirV2.rotate(-degreePerFrame);	
+				cameraDirV2.rotate(degreePerFrame);
 			cameraUpdateNear();
     		break;
 
@@ -587,7 +574,7 @@ public class GameRenderer {
 	protected void debugCurrentGrid() {
 		shaper.begin(ShapeType.Filled);
 		shaper.setColor(Color.RED);
-		for (int i = 0; i < currentGrid.length; ++i)
+		for (int i = 0; i < (currentGrid != null ? currentGrid.length : 0); ++i)
 			for (int j = 0; j < currentGrid[0].length; ++j) {
 				shaper.circle(i * 100f, j * 100f, 2.5f);
 				// Draw lines for vectors

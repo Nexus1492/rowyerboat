@@ -37,7 +37,7 @@ public class IntroScreen implements Screen {
 		game = g;
 		
 		batch = new SpriteBatch();
-		font = AssetLoader.font;
+		font = AssetLoader.getFont();
 		
 		stage = new Stage(new FitViewport(Settings.width, Settings.height), batch);
 		Image logo = new Image(AssetLoader.nexusLogo);
@@ -48,9 +48,10 @@ public class IntroScreen implements Screen {
 		String str = "This game was developed as part of the ERC-Synergy Project NEXUS1492.\n"
 				+ "By using it you agree that your User-ID and the tracks of your boat are recorded \n"
 				+ "and used for research purposes within the project.\n"
+				+ "Music courtesy of Boynayel.\n"
 				+ "Tap to agree.";
 		TextButtonStyle tbs = new TextButtonStyle();
-		tbs.font = AssetLoader.font;
+		tbs.font = AssetLoader.getFont();
 		
 		TextButton text = new TextButton(str, tbs);
 		text.bottom().right();
@@ -98,7 +99,6 @@ public class IntroScreen implements Screen {
 
 	@Override
 	public void show() {
-		HttpPoster.checkConnection();
 	}
 	
 	@Override

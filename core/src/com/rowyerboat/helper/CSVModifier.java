@@ -1,6 +1,5 @@
 package com.rowyerboat.helper;
 
-import java.io.BufferedReader;
 import java.util.Locale;
 
 import com.badlogic.gdx.Gdx;
@@ -38,7 +37,7 @@ public class CSVModifier {
 			
 			if (i % 50 == 0)
 				System.out.print("\r" + "Progress: " + 
-						String.format(Locale.US, "%.2f", (float)(i / (float)splits.length * 100f)));
+						String.format(Locale.US, "%.2f", i / (float)splits.length * 100f));
 		}
 		System.out.println("\n");
 		FileHandle write = Gdx.files.local(loc.path() + ".clean");
