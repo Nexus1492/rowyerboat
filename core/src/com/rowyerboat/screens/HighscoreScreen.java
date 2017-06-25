@@ -150,7 +150,6 @@ public class HighscoreScreen implements Screen {
 				public void clicked(InputEvent event, float x, float y) {
 					Settings.setMission(Campaign.getCampaign(mission.campaignID)
 							.nextMission(Settings.missionID).id);
-					//game.setScreen(new GameScreen());
 					game.setScreen(new MissionSelectionScreen(), false);
 				}
 			});
@@ -160,15 +159,14 @@ public class HighscoreScreen implements Screen {
 			buttonTable.add(mapButton.pad(10f)).pad(padding);
 			buttonTable.add(menuButton.pad(10f)).pad(padding);
 			buttonTable.add(nextMissionButton.pad(10f)).pad(padding);
-			if (Campaign.getCampaign(Settings.missionID).nextMission(Settings.missionID) == null
-					|| !Settings.tracker.isWin) {
+			if (Campaign.getCampaign(Settings.missionID).nextMission(Settings.missionID) == null) {
 				nextMissionButton.setChecked(true);
 				nextMissionButton.setTouchable(Touchable.disabled);
 			}
 			
 			Table masterTable = new Table();
-			masterTable.add(leftTable).center().top();
-			masterTable.add(rightTable).center().top();
+			masterTable.add(leftTable).padRight(10f).center().top();
+			masterTable.add(rightTable).padLeft(10f).center().top();
 			masterTable.row();
 			masterTable.add(buttonTable).colspan(2);
 			masterTable.center();
@@ -217,7 +215,7 @@ public class HighscoreScreen implements Screen {
 					"Accomplished" : "Failed", style)).right();
 			personalscore.row();
 			personalscore.add(new Label("Time: ", style)).left();
-			personalscore.add(new Label(timeTaken != 0.5f ? Transverter.secondsToString(timeTaken) : "-", style)).right();
+			personalscore.add(new Label(timeTaken != 0f ? Transverter.secondsToString(timeTaken) : "-", style)).right();
 			personalscore.row();
 			personalscore.add(new Label("Personal record: ", style)).left();
 			personalscore.add(new Label(recordTime > 0 ? Transverter.secondsToString(recordTime) : "-", style)).right();

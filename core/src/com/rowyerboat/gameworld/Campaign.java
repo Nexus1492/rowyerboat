@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
+import com.badlogic.gdx.Gdx;
 import com.rowyerboat.gameworld.Mission.MissionID;
 import com.rowyerboat.helper.Settings;
 
@@ -17,14 +18,14 @@ public class Campaign {
 	public boolean isFinished;
 
 	public enum CampaignID {
-		TutorialCampaign, Campaign01, Campaign02;
+		TutorialCampaign, Campaign01, Campaign01Dyn;
 
 		public String getName() {
 			switch (this) {
 			case Campaign01:
-				return "Campaign01";
-			case Campaign02:
-				return "Placerholder Campaign";
+				return "Static Campaign";
+			case Campaign01Dyn:
+				return "Dynamic Campaign";
 			case TutorialCampaign:
 				return "Tutorial";
 			}
@@ -33,6 +34,7 @@ public class Campaign {
 	}
 
 	public static void init() {
+		Gdx.app.log("Initialization", "Campaigns");
 		campaigns = new HashMap<CampaignID, Campaign>();
 		for (CampaignID id : CampaignID.values())
 			campaigns.put(id, new Campaign(id));
@@ -49,7 +51,7 @@ public class Campaign {
 	private Campaign(CampaignID id) {
 		this.id = id;
 		name = id.toString();
-		accomplishedMissions = Settings.campaignProgress.getInteger(id.toString(), 0);
+		//accomplishedMissions = Settings.campaignProgress.getInteger(id.toString(), 0);
 		campaignMissions = new ArrayList<Mission>();
 		switch (id) {
 		case Campaign01:
@@ -57,8 +59,10 @@ public class Campaign {
 			addMission(MissionID.JaguarTeeth);
 			addMission(MissionID.JaguarTeeth2);
 			break;
-		case Campaign02:
-			//campaignMissions.add(Mission.getMission(MissionID.Placeholder));
+		case Campaign01Dyn:
+			addMission(MissionID.PotteryDyn);
+			addMission(MissionID.JaguarTeethDyn);
+			addMission(MissionID.JaguarTeeth2Dyn);
 			break;
 		case TutorialCampaign:
 			addMission(MissionID.Tutorial0);

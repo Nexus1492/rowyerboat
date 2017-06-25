@@ -4,6 +4,7 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.rowyerboat.game.RowYerBoat;
 import com.rowyerboat.gameworld.Campaign;
@@ -21,11 +22,11 @@ public class Settings {
 	
 	public static boolean online = false;
 	
-	public static Preferences highscores;
-	public static Preferences userData;
-	public static Preferences lastSession;
-	public static Preferences campaignProgress;
-	public static String userID;
+	public static Preferences highscores = Gdx.app.getPreferences("rowyerboat.highscores");
+	public static Preferences userData = Gdx.app.getPreferences("rowyerboat.userData");
+	public static Preferences lastSession = Gdx.app.getPreferences("rowyerboat.lastSession");
+	public static Preferences campaignProgress = Gdx.app.getPreferences("rowyerboat.campaignProgress");
+	public static String userID = userData.getString("userID", "");
 	public static String userIDOffset;
 	public static boolean firstTime;
 	
@@ -57,18 +58,12 @@ public class Settings {
 	// set by world
 	public static Tracker tracker;
 	
-	public static void init(Game g) {
+	public static void init() {
+		Gdx.app.log("Initialization", "Settings");
 		MathUtils.random.setSeed(TimeUtils.nanoTime());
-		
-		game = (RowYerBoat) g;
-		highscores = Gdx.app.getPreferences("rowyerboat.highscores");
-		userData = Gdx.app.getPreferences("rowyerboat.userData");
-		lastSession = Gdx.app.getPreferences("rowyerboat.lastSession");
-		campaignProgress = Gdx.app.getPreferences("rowyerboat.campaignProgress");
 		
 		checkVersion();
 		
-		userID = userData.getString("userID", "");
 		userIDOffset = userData.getString("userIDoffset", "");
 		
 		useEnergy = lastSession.getBoolean("lastMissionEnergy", false);
@@ -83,6 +78,7 @@ public class Settings {
 		debug = false;
 		hud = false;
 		shaderID = 0;
+
 	}
 	
 	private static void checkVersion() {
@@ -122,6 +118,7 @@ public class Settings {
 		if (version < 1.04 && version < curr_version) {
 			campaignProgress.putBoolean("TutorialCampaign_UNLOCKED", true);
 			campaignProgress.putBoolean("Campaign01_UNLOCKED", true);
+			campaignProgress.putBoolean("Campaign01Dyn_UNLOCKED", true);
 			campaignProgress.putBoolean("Campaign02_UNLOCKED", false);
 			
 			lastSession.putString("lastMission", MissionID.Tutorial0.toString());

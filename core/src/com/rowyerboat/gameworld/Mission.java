@@ -31,10 +31,23 @@ public class Mission {
 	private static int pointerD = 0;
 	
 	private static HashMap<MissionID, Mission> missions;
+
+	private Vector2[][] currentGrid;
+	public String currentDate;
+	public float gridDistance;
+	
+	public Vector2[][] getCurrentGrid() {
+		return currentGrid;
+	}
+
+	public void setCurrentGrid(Vector2[][] newGrid) {
+		currentGrid = newGrid;
+	}
 	
 	public static enum MissionID {
 		Tutorial0, Tutorial1, //tutorialcampaign
-		JaguarTeeth, JaguarTeeth2, Pottery, //campaign01
+		JaguarTeeth, JaguarTeeth2, Pottery, //campaign01static
+		JaguarTeethDyn, JaguarTeeth2Dyn, PotteryDyn, //campaign01dynamic
 		Placeholder; //campaign02;
 		
 		public CampaignID getCampaignID() {
@@ -43,6 +56,7 @@ public class Mission {
 	}
 	
 	public static void init() {
+		Gdx.app.log("Initialization", "Missions");
 		missions = new HashMap<MissionID, Mission>();
 		for (MissionID id : MissionID.values())
 			missions.put(id, new Mission(id));
@@ -67,25 +81,22 @@ public class Mission {
 		switch(id){
 		case JaguarTeeth:
 			initialBoatPos = Transverter.GPStoGame(new Vector2(14.4f,-60.8f));
-			initialBoatDir = new Vector2(-1, -1);
+			initialBoatDir = new Vector2(1, -1);
 			name = "Jaguar Teeth (1/2)";
-			/*initialBoatPos = Transverter.textureToGame(new Vector2(551, 384), true);
-			addTargets(new Location("target0", Transverter.textureToGame(new Vector2(450, 540), true)),
-					new Location("target1", Transverter.textureToGame(new Vector2(447, 372), true)),
-					new Location("target2", Transverter.textureToGame(new Vector2(551, 384), true))
-					);*/
 			addTargets(new Location("target0", Transverter.GPStoGame(new Vector2(13.2f,-59.7f))),
-					new Location("target1", Transverter.GPStoGame(new Vector2(13.4f,-61.2f))));
-			map = new GameMap(TimeUtils.millis(), MapID.lesserAntilles);
+					new Location("target1", Transverter.GPStoGame(new Vector2(13.5f,-61.2f))));
+			map = GameMap.getMap(MapID.lesserAntilles);
+			currentGrid = CurrentData.getGrid(this, "2016-05-13_LA.csv");
 			break;
 		case JaguarTeeth2:
-			initialBoatPos = Transverter.GPStoGame(new Vector2(13.4f,-61.2f));
-			initialBoatDir = new Vector2(-1, -1);
+			initialBoatPos = Transverter.GPStoGame(new Vector2(13.5f,-61.2f));
+			initialBoatDir = new Vector2(0, -1);
 			name = "Jaguar Teeth (2/2)";
 			
 			addTargets(Transverter.GPStoGame(new Vector2(10.9f,-61.1f)),
 					Transverter.GPStoGame(new Vector2(14.4f,-60.8f)));
-			map = new GameMap(TimeUtils.millis(), MapID.lesserAntilles);
+			map = GameMap.getMap(MapID.lesserAntilles);
+			currentGrid = CurrentData.getGrid(this, "2016-05-13_LA.csv");
 			break;
 		case Pottery:
 			initialBoatPos = Transverter.GPStoGame(new Vector2(16.3f,-61.1f));
@@ -96,11 +107,12 @@ public class Mission {
 					new Location("target2", Transverter.GPStoGame(new Vector2(18.6f,-64.8f))),
 					new Location("target3", Transverter.GPStoGame(new Vector2(18.1f,-65.3f))),
 					new Location("target4", Transverter.GPStoGame(new Vector2(17.9f,-66.2f))));
-			map = new GameMap(TimeUtils.millis(), MapID.lesserAntilles);
+			map = GameMap.getMap(MapID.lesserAntilles);
+			currentGrid = CurrentData.getGrid(this, "2016-05-13_LA.csv");
 			break;
 		case Placeholder:
 			name = "Placeholder";
-			map = new GameMap(TimeUtils.millis(), MapID.lesserAntilles);
+			map = GameMap.getMap(MapID.lesserAntilles);
 			break;
 		case Tutorial0:
 			initialBoatPos = new Vector2(550, 250);
@@ -108,18 +120,48 @@ public class Mission {
 			name = "Obstacle Course";
 			addTargets(new Location("target0", new Vector2(550, 750)));
 			addTargets(new Location("target1", new Vector2(550, 1300)));
-			map = new GameMap(0, MapID.tutorial);
+			map = GameMap.getMap(MapID.tutorial0);
 			break;
 		case Tutorial1:
 			initialBoatPos = new Vector2(500, 150);
 			initialBoatDir = new Vector2(0, 1);
 			addTargets(new Location("target0", new Vector2(500, 850), 20));
-			map = new GameMap(1, MapID.tutorial);
+			map = GameMap.getMap(MapID.tutorial1); // copy paste grid!
+			gridDistance = 50f;
+			currentGrid = new Vector2[(int) (map.width / gridDistance)][(int) (map.height / gridDistance)];
+			for (int i = 0; i < currentGrid.length; ++i)
+				for (int j = 0; j < currentGrid[0].length; ++j)
+					if (j > 5 && j <= 15)
+						currentGrid[i][j] = new Vector2(-1f * (float) Math.sin((j / 15.0) * Math.PI), 0);
+					else
+						currentGrid[i][j] = new Vector2(0, 0);
 			name = "Rough Currents";
-			
+			break;
+		case JaguarTeethDyn:
+			createDynamic(MissionID.JaguarTeeth);
+			break;
+		case JaguarTeeth2Dyn:
+			createDynamic(MissionID.JaguarTeeth2);
+			break;
+		case PotteryDyn:
+			createDynamic(MissionID.Pottery);
 			break;
 		}
-		description = getDesc(id);
+		if (description == null)
+			description = getDesc(id);
+	}
+
+	private void createDynamic(MissionID copyID) {
+		Mission srcMission = Mission.getMission(copyID);
+		this.initialBoatPos = srcMission.initialBoatPos.cpy();
+		this.initialBoatDir = srcMission.initialBoatDir.cpy();
+		this.targets.addAll(srcMission.targets);
+		this.dangers.addAll(srcMission.dangers);
+		this.name = srcMission.name + " (dynamic)";
+		this.map = GameMap.getMap(srcMission.map.ID);
+		this.currentGrid = CurrentData.getRandomGrid(this);
+		this.description = "CAUTION: This is a dynamic mission! The currents are picked randomly out of "
+				+ "a small set of current data and are not always the same.\n\n" + srcMission.description;
 	}
 	
 	public void addTargets(Vector2... vectors) {
@@ -203,10 +245,15 @@ public class Mission {
 	public void reset() {
 		pointerT = 0;
 		pointerD = 0;
+		if (id.toString().contains("Dyn")) {
+			setCurrentGrid(CurrentData.getRandomGrid(this));
+		}
 	}
 	
 	public static String getDesc(MissionID id) {
 		switch(id){
+		default:
+			return getMission(id).description;
 		case Pottery:
 			return "Pottery Acquisition\n\n"
 					+ "Your village's chief has heard about some very beautiful pottery being "
@@ -261,6 +308,5 @@ public class Mission {
 					+ "Also, you can quickreset the boat by pressing "
 					+ (Gdx.app.getType() == ApplicationType.Desktop ? "BACKSPACE" : "BACK on your device.");
 		}
-		return null;
 	}
 }

@@ -46,7 +46,7 @@ public class Tracker {
 	/** time in milliseconds (realworld) */
 	private Array<Float> times;
 
-	public float timeTaken = 0.5f;
+	public float timeTaken = 0f;
 
 	/**
 	 * interval to measure the boats position in seconds (e.g. interval = 0.2f
@@ -143,9 +143,9 @@ public class Tracker {
 		map.put("StartTime", startTime == null ? "NEVER" : startTime);
 		map.put("log", content.toString());
 		map.put("TimeTaken", "" + timeTaken);
+		map.put("CurrentDate", mission.currentDate != null ? mission.currentDate : "");
 
-		if (timeTaken > 1) // TODO magic number
-			HttpPoster.sendLog(map, true);
+		HttpPoster.sendLog(map, true);
 	}
 
 	public void setBoat(Boat boat) {

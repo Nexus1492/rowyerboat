@@ -73,7 +73,7 @@ public class WorldMapScreen2 implements Screen {
 		if (s != null)
 			lastScreen = s;
 		else
-			lastScreen = new MainScreen(game);
+			lastScreen = new MainScreen();
 		lastInput = Gdx.input.getInputProcessor();
 		// unbind controls
 		Gdx.input.setInputProcessor(null);

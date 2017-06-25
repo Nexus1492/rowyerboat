@@ -1,31 +1,57 @@
 package com.rowyerboat.game;
 
+import java.util.Locale;
+
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
-import com.rowyerboat.gameworld.Campaign;
-import com.rowyerboat.gameworld.Mission;
-import com.rowyerboat.helper.AssetLoader;
-import com.rowyerboat.helper.HttpPoster;
-import com.rowyerboat.helper.Settings;
+import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.utils.TimeUtils;
+import com.rowyerboat.gameworld.*;
+import com.rowyerboat.helper.*;
 import com.rowyerboat.screens.*;
+import com.rowyerboat.scientific.*;
 
 public class RowYerBoat extends Game {
 	java.util.Stack<Screen> screens;
 	java.util.Stack<InputProcessor> inputs;
+	
+	public Boolean init = null;
 	
 	@Override
 	public void create () {
 		screens = new java.util.Stack<Screen>();
 		inputs = new java.util.Stack<InputProcessor>();
 
-		AssetLoader.load();
-		Mission.init();
-		Settings.init(this);
-		Campaign.init();
+		Settings.game = this;
+		setScreen(new IntroScreen());
+	}
 
-		setScreen(new IntroScreen(this));
+	public void init() {
+		Gdx.app.log("Initialization", "Started");
+		final long start = TimeUtils.nanoTime();
+		AssetLoader.init();
+		GameMap.init();
+		Thread initThread = new Thread() {
+			public void run() {
+				CurrentData.init();
+				Mission.init();
+				Transverter.init();
+				Settings.init();
+				Campaign.init();
+			};
+		};
+		initThread.start();
+		try {
+			initThread.join();
+			Gdx.app.log("Initialization", String.format(Locale.US, "Finished after %f seconds",
+					TimeUtils.timeSinceNanos(start)/1000000000.0));
+			init = true;
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		setScreen(new MainScreen());
 	}
 	
 	public void setLastScreen(Screen scr) {

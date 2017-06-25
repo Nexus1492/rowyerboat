@@ -24,6 +24,21 @@ public class SimpleWaterShader implements Shader {
 	private int u_projView;
 	private float time;
 
+	
+	public void update(float delta) {
+		time += delta;
+		program.begin();
+		program.setUniformf("u_time", time);
+		program.setUniformi("u_texture0", 2);
+		program.setUniformi("u_texture1", 3);
+		program.setUniformi("u_texture2", 4);
+		program.setUniformi("u_texture3", 5);
+		program.setUniformf("u_lightPos", new Vector3(512, 512, 300f));
+		if (camera != null)
+			program.setUniformf("u_camPos", camera.position);
+		program.end();
+	}
+	
 	@Override
 	public void init() {
 		ShaderProgram.pedantic = false;
@@ -42,20 +57,6 @@ public class SimpleWaterShader implements Shader {
 		program.setUniformMatrix(u_projView, camera.combined);
         this.context.setDepthTest(GL30.GL_LEQUAL);
         this.context.setCullFace(GL30.GL_BACK);
-	}
-	
-	public void update(float delta) {
-		time += delta;
-		program.begin();
-		program.setUniformf("u_time", time);
-		program.setUniformi("u_texture0", 2);
-		program.setUniformi("u_texture1", 3);
-		program.setUniformi("u_texture2", 4);
-		program.setUniformi("u_texture3", 5);
-		program.setUniformf("u_lightPos", new Vector3(512, 512, 300f));
-		if (camera != null)
-			program.setUniformf("u_camPos", camera.position);
-		program.end();
 	}
 
 	@Override

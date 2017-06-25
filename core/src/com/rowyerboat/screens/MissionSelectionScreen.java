@@ -145,10 +145,10 @@ public class MissionSelectionScreen implements Screen {
 			missionButtonTables = new HashMap<CampaignID, Table>();
 			campaignButtons = new HashMap<CampaignID, TextButton>();
 			
-			final TextButton apply = new TextButton("Apply", skin);
-			final TextButton cancel = new TextButton("Cancel", skin);
-			final TextButton showMap = new TextButton("Show Map", skin);
-			final TextButton showHighscores = new TextButton("Show Highscores", skin);
+			final TextButton apply = new RYBButton("Apply", skin);
+			final TextButton cancel = new RYBButton("Cancel", skin);
+			final TextButton showMap = new RYBButton("Show Map", skin);
+			final TextButton showHighscores = new RYBButton("Show Highscores", skin);
 			
 			missionButtonUncheckGroup = new ButtonGroup<TextButton>();
 			missionButtonUncheckGroup.setUncheckLast(true);
@@ -281,7 +281,7 @@ public class MissionSelectionScreen implements Screen {
 				final TextButton misButton = new TextButton(String.format("Mission%2d", i+1), style);
 				setMissionButtonListener(misButton, mis.id);
 				
-				missionButtonTable.add(misButton).pad(buttonPad).padRight(0);
+				missionButtonTable.add(misButton.padLeft(5f).padRight(5f)).pad(buttonPad).padRight(0);
 				missionButtonUncheckGroup.add(misButton);
 				missionButtons.put(mis.id, misButton);
 			}

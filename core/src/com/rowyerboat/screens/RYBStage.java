@@ -1,5 +1,6 @@
 package com.rowyerboat.screens;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -114,6 +115,30 @@ public class RYBStage extends Stage {
 				}
 			});
 		}
+	}
+	
+	protected class RYBButton extends TextButton {
+
+		public RYBButton (String text, Skin skin) {
+			this(text, skin.get(TextButtonStyle.class));
+			setSkin(skin);
+		}
+		
+		public RYBButton(String text, Skin skin, String styleName) {
+			this(text, skin.get(styleName, TextButtonStyle.class));
+			setSkin(skin);
+		}
+
+		public RYBButton(String text, TextButtonStyle textButtonStyle) {
+			super(text, textButtonStyle);
+			addListener(new ClickListener() {
+				@Override
+				public void clicked(InputEvent event, float x, float y) {
+					AssetLoader.fx_buttonClick.play(0.5f);
+				}
+			});
+		}
+		
 	}
 
 }

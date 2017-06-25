@@ -12,8 +12,6 @@ public class RowYerBoatDesktop {
 		int resFactor = 65;
 		config.width = resFactor * 16;
 		config.height = resFactor * 9;
-		//config.fullscreen = true;
-		//config.useGL30 = true;
 		new LwjglApplication(new RowYerBoat(), config);
 	}
 }

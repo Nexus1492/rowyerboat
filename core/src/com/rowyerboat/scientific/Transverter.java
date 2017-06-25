@@ -1,6 +1,15 @@
 package com.rowyerboat.scientific;
 
+import java.util.HashMap;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Json;
+import com.badlogic.gdx.utils.JsonValue;
+import com.rowyerboat.gameworld.GameMap.MapID;
 import com.rowyerboat.helper.Settings;
 
 /** 
@@ -23,6 +32,8 @@ public abstract class Transverter {
 	static float minLon = 292, maxLon = 301f;
 	/** longitude in real-world coordinates */
 	static float minLat = 9.5f, maxLat = 19f;
+
+	static TreeMap<Float, Float> ingameValues = new TreeMap<Float, Float>();
 	
 	public static Vector2 GPStoGame(Vector2 vec) {
 		// case: long0 = zeromeridian
@@ -81,9 +92,10 @@ public abstract class Transverter {
 	
 	/** transform time in seconds into formatted String "%2d:%2d" */
 	public static String secondsToString(float secs) {
-		String str = String.format("%2d" + ":" + (secs % 60 < 10 ? "0" : "") + "%d",
+		String str = String.format("%2d" + ":" + (secs % 60 < 10 ? "0" : "") + "%d:%s",
 				(int)(secs / 60),
-				(int)(secs % 60));
+				(int)(secs % 60),
+				String.valueOf(secs - (int)secs + 0.005).substring(2, 4));
 		return str;
 	}
 	
@@ -91,5 +103,44 @@ public abstract class Transverter {
 	public static float stringToSeconds(String str) {
 		String[] parts = str.split(":");
 		return Float.parseFloat(parts[0]) * 60 + Float.parseFloat(parts[1]);
+	}
+	
+	/**
+	 * For a given position in the game world (only works on the lesser Antilles as of now),
+	 * return the scaling factor for the x velocity-scaling
+	 * @param gamePos
+	 * @return
+	 */
+	public static float getLocationScale(Vector2 gamePos) {
+		if (Settings.map.ID != MapID.lesserAntilles) // TODO customize once whole caribbean is implemented
+			return 1;
+
+		Entry<Float, Float> floor = ingameValues.floorEntry(gamePos.y);
+		Entry<Float, Float> ceil = ingameValues.ceilingEntry(gamePos.y);
+		if (floor == null && ceil == null)
+			return 1;
+		else if (floor == null && ceil != null)
+			return ceil.getValue();
+		else if (floor != null && ceil == null)
+			return floor.getValue();
+		
+		float fac = Math.abs(gamePos.y - floor.getKey())/Math.abs(floor.getKey() - ceil.getKey());
+		return floor.getValue() * fac + ceil.getValue() * (1 - fac);
+	}
+	
+	/**
+	 * Initialize the lookup table for the ingame scaling due to the mercator projection
+	 */
+	public static void init() {
+		Json json = new Json();
+		TreeMap<Object, Object> lookup = new TreeMap<Object, Object>();
+		lookup = json.fromJson(lookup.getClass(), Gdx.files.internal("coordinateScaleLookup.json"));
+		Array<Float> values = (Array<Float>)lookup.get("values");
+		
+		float minLat = (float) lookup.get("minLat"), maxLat = (float) lookup.get("maxLat"),
+				stepsize = (float) lookup.get("stepsize");
+		for (float lat = minLat, i = 0; i < values.size; lat += stepsize, i++) {
+			ingameValues.put((lat - minLat)/(maxLat - minLat) * worldHeight, values.get((int)i));
+		}
 	}
 }

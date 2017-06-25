@@ -132,7 +132,8 @@ public class GameUI {
 				"CameraMode: " + cameraMode.toString(),
 				"ShaderMode: " + ShaderIDName.values()[Settings.shaderID],
 				"Resolution: " + width + " x " + height,
-				"Ratio: " + (width/height)
+				"Ratio: " + (width/height),
+				"LocationScale: " + boat.locationScale
 				);
 		
 		if (cameraMode != CameraMode.ortho) {
@@ -319,8 +320,8 @@ public class GameUI {
 		Table buttonTable = new Table();
 		buttonTable.add(zoomIn).pad(5f).row();
 		buttonTable.add(zoomOut).pad(5f).row();
-		//buttonTable.add(debug).pad(5f).row();
-		//buttonTable.add(hud).pad(5f).row();
+		buttonTable.add(debug).pad(5f).row();
+		buttonTable.add(hud).pad(5f).row();
 		buttonTable.add(mapButton).pad(5f).row();
 		buttonTable.top().right().setPosition(stage.getWidth(), stage.getHeight());
 		

@@ -35,9 +35,6 @@ public class HttpPoster {
 	 * @return
 	 */
 	public static void sendLog(HashMap<String, String> map, boolean addToStack) {
-		if (Settings.tracker.timeTaken < 2) {
-			showOnlyHighscores(Settings.missionID, Settings.useEnergy);
-		}
 		HttpRequest req = new HttpRequest(HttpMethods.POST);
 		req.setUrl(url);
 		req.setContent(HttpParametersUtils.convertHttpParameters(map));

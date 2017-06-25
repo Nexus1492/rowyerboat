@@ -64,7 +64,7 @@ public class WorldMapScreen implements Screen {
 
 	public WorldMapScreen() {
 		stage = new WorldMapStage();
-		
+
 		Gdx.input.setInputProcessor(stage);
 	}
 
@@ -129,6 +129,15 @@ public class WorldMapScreen implements Screen {
 
 		public WorldMapStage() {
 			initMapTexes();
+			
+			TextButton quitButton = new TextButton("Quit", skin);
+			quitButton.addListener(new ClickListener() {
+				@Override
+				public void clicked(InputEvent event, float x, float y) {
+					Settings.game.returnToLastScreen();
+					Settings.world.gameEnd(false);
+				}
+			});
 
 			Table masterTable = new Table();
 			masterTable.center().bottom().setPosition(getWidth() / 2, 0);
@@ -137,7 +146,11 @@ public class WorldMapScreen implements Screen {
 			masterTable.add();
 			masterTable.row();
 			masterTable.add(new BackButton("Back", skin)).padBottom(padding).center();
-
+			if (Settings.game.getScreen().getClass().equals(GameScreen.class)) {
+				masterTable.getCells().get(0).colspan(2);
+				masterTable.getCells().get(1).right();
+				masterTable.add(quitButton).left().padBottom(padding).padLeft(padding * 10);
+			}
 			switchMapLayout();
 		}
 		

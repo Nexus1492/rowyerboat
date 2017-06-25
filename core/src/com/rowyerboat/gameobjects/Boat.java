@@ -2,9 +2,12 @@ package com.rowyerboat.gameobjects;
 
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Polygon;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.rowyerboat.gameworld.GameWorld;
 import com.rowyerboat.helper.Settings;
+import com.rowyerboat.scientific.Transverter;
+import com.rowyerboat.screens.GameScreen;
 
 /**
  * Boat class holding and storing all the information about the boat.
@@ -76,6 +79,7 @@ public class Boat {
 	public float[] currSpeed;
 	
 	private float speedScale = Settings.speedScale;
+	public float locationScale;
 
 	/** levels of energy depletion */
 	float level0 = 0f, level1 = 0.5f, level2 = 0.85f; // if adjusted, adjust GameUI accordingly
@@ -140,15 +144,20 @@ public class Boat {
 	 */
 	public void update(float delta) {
 		t += delta;
+		locationScale = Transverter.getLocationScale(midPoint);
 		
-		if (midPoint.x < 0)
+		/*if (midPoint.x < 0)
 			midPoint.x = 0;
 		if (midPoint.x > world.width)
 			midPoint.x = world.width;
 		if (midPoint.y < 0)
 			midPoint.y = 0;
 		if (midPoint.y > world.height)
-			midPoint.y = world.height;
+			midPoint.y = world.height;*/
+		
+		if (!(new Rectangle(0, 0, world.width, world.height).contains(midPoint))) {
+			GameScreen.class.cast(Settings.game.getScreen()).end(false);
+		}
 
 		if (stopping) {
 			float r = ((v1 / maxSpeed) * (maxSpeed / vn) * interval) / 2;
@@ -167,7 +176,9 @@ public class Boat {
 			v1 = 0;
 			stopping = false;
 		} else {
-			midPoint.add(direction.cpy().setLength(v * delta * speedScale));	
+			Vector2 displace = direction.cpy().setLength(v * delta * speedScale);
+			displace.x *= locationScale;
+			midPoint.add(displace);	
 		}
 		
 		if (t > interval) {
@@ -204,6 +215,8 @@ public class Boat {
 		currSpeed[0] = bowDir.len();
 		currSpeed[1] = sternDir.len();
 		if (currSpeed[0] > 0 && currSpeed[1] > 0) {
+			bowDir.x *= locationScale;
+			sternDir.x *= locationScale;
 			Vector2 newBow = bowPoint.cpy().add(bowDir.scl(delta * Settings.speedScale));
 			Vector2 newStern = sternPoint.cpy().add(sternDir.scl(delta * Settings.speedScale));
 			Vector2 newDir = newBow.cpy().sub(newStern);
@@ -341,19 +354,21 @@ public class Boat {
 		this.height = 22 * scale;
 		float[] betterbox = new float[] {
 				-width, -height,
-				0, -height,
+				//0, -height,
 				width, -height,
 				width, height,
-				0, height,
+				//0, height,
 				-width, height
 		};
 		
 		hitbox = new Polygon(betterbox);
 		hitbox.setOrigin(0, 0);
-		hitbox.setPosition(midPoint.x, midPoint.y);
 		hitbox.setRotation(rotation + 90f);
-		bowPoint.set(hitbox.getTransformedVertices()[2], hitbox.getTransformedVertices()[3]);
-		sternPoint.set(hitbox.getTransformedVertices()[8], hitbox.getTransformedVertices()[9]);
+		hitbox.setPosition(midPoint.x, midPoint.y);
+		//bowPoint.set(hitbox.getTransformedVertices()[2], hitbox.getTransformedVertices()[3]);
+		bowPoint.set(midPoint.cpy().add(direction.cpy().setLength(height)));
+		//sternPoint.set(hitbox.getTransformedVertices()[8], hitbox.getTransformedVertices()[9]);
+		sternPoint.set(midPoint.cpy().sub(direction.cpy().setLength(height)));
 	}
 	
 	public void setPos(Vector2 posVec) {
@@ -365,8 +380,8 @@ public class Boat {
 	private void updateHitbox() {
 		hitbox.setRotation(rotation + 90f);
 		hitbox.setPosition(midPoint.x, midPoint.y);
-		bowPoint.set(hitbox.getTransformedVertices()[2], hitbox.getTransformedVertices()[3]);
-		sternPoint.set(hitbox.getTransformedVertices()[8], hitbox.getTransformedVertices()[9]);
+		bowPoint.set(sternPoint.set(midPoint.cpy().add(direction.cpy().setLength(height))));
+		sternPoint.set(sternPoint.set(midPoint.cpy().sub(direction.cpy().setLength(height))));
 	}
 
 	public float getMaxSpeed() {
