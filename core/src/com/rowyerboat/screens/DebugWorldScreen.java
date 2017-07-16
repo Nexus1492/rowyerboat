@@ -62,7 +62,7 @@ public class DebugWorldScreen extends GameRenderer {
 				shaper.setColor(Color.RED);
 				shaper.setColor(Color.FIREBRICK);
 				for (int i = 0; i < locations.size; ++i) {
-					shaper.polygon(locations.get(i).getHitbox().getTransformedVertices());
+					shaper.polygon(locations.get(i).getHitboxPoly().getTransformedVertices());
 				}
 				shaper.end();
 			}		

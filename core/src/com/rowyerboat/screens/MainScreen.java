@@ -167,7 +167,7 @@ public class MainScreen implements Screen {
 				public void clicked(InputEvent event, float x, float y) {
 					energyButton.setChecked(energyButton.isChecked());
 					energyButton.setText("Energy\n" + (energyButton.isChecked() ? "OFF" : "ON"));
-					Settings.updateEnergy(!energyButton.isChecked());
+					//Settings.updateEnergy(!energyButton.isChecked());
 				}
 			});
 			// grp.addActor(energyButton);
@@ -300,10 +300,9 @@ public class MainScreen implements Screen {
 								HttpPoster.registerEmail(text.replace("\r", "").replace("\n", ""));
 								Settings.userData.putString("UserMail", text);
 								Settings.userData.flush();
-								if (email != null)
-									emailString = "You have currently registered the following email adress: "
-											+ email +".\nBy accepting again and entering a new email adress, "
-											+ "this value will be overwritten.";
+								emailString = "You have currently registered the following email adress: "
+										+ text +".\nBy accepting again and entering a new email adress, "
+										+ "this value will be overwritten.";
 								switchStages();
 								declineButton.setText("Back");
 							} else

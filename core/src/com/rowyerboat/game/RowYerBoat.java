@@ -38,8 +38,8 @@ public class RowYerBoat extends Game {
 				CurrentData.init();
 				Mission.init();
 				Transverter.init();
-				Settings.init();
 				Campaign.init();
+				Settings.init();
 			};
 		};
 		initThread.start();

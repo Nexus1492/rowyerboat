@@ -160,8 +160,9 @@ public class Mission {
 		this.name = srcMission.name + " (dynamic)";
 		this.map = GameMap.getMap(srcMission.map.ID);
 		this.currentGrid = CurrentData.getRandomGrid(this);
-		this.description = "CAUTION: This is a dynamic mission! The currents are picked randomly out of "
-				+ "a small set of current data and are not always the same.\n\n" + srcMission.description;
+		this.description = "CAUTION: This is a dynamic mission! "
+				+ "The currents are randomly selected and may differ between runs.\n\n"
+				+ srcMission.description;
 	}
 	
 	public void addTargets(Vector2... vectors) {
@@ -284,11 +285,14 @@ public class Mission {
 					+ "where no currents are present yet.\n";
 			
 			if (Gdx.app.getType() != ApplicationType.Desktop)
-				desc += "By swiping downwards on your screen in the left or right half of the screen you ";
+				desc += "By swiping downwards on your screen in the left or right half of the screen "
+						+ "you navigate the boat.\nTap and hold the screen to brake and perform a fast-turn.\n";
 			else
-				desc += "By pressing the left or right arrow key on your keyboard you ";
+				desc += "By pressing the left or right arrow key on your keyboard you navigate the boat.\n"
+						+ "Pressing arrow keys up and down or holding shift and left or right to brake "
+						+ "and perform a fast-turn\n";
 			
-			desc += "navigate the boat.\n\n"
+			desc += "\n"
 					+ "Here are some Tips:\n"
 					+ "The faster you are, the worse you can navigate the boat! Lose some speed for better "
 					+ "maneuverability when needed.\n"

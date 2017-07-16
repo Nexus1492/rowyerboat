@@ -184,8 +184,7 @@ public class MissionSelectionScreen implements Screen {
 			showHighscores.addListener(new ClickListener() {
 				@Override
 				public void clicked(InputEvent event, float x, float y) {
-					//game.setScreen(new HighscoreScreen(game, game.getScreen(), "schnitzel-1320454\n300\nhacker-19875\n200"));
-					HttpPoster.showOnlyHighscores(missionID, Settings.useEnergy);
+					HttpPoster.getHighscores(missionID, Settings.useEnergy);
 					showHighscores.setChecked(false);
 				}
 			});
@@ -304,7 +303,6 @@ public class MissionSelectionScreen implements Screen {
 						missionButtonTables.get(cID).setVisible(false);
 					else
 						missionButtonTables.get(id).setVisible(true);
-						
 				}
 				Campaign campaign = Campaign.getCampaign(id);
 				MissionID missionID = lastSelectedCampaignMission.get(campaign.id);
@@ -326,7 +324,7 @@ public class MissionSelectionScreen implements Screen {
 			btn.addListener(new ClickListener() {
 				@Override
 				public void clicked(InputEvent event, float x, float y) {
-					//missionButtonUncheckGroup.uncheckAll();
+					missionButtonUncheckGroup.uncheckAll();
 					btn.setChecked(true);
 					missionID = id;
 					descriptionField.setText(Mission.getDesc(missionID));

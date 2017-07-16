@@ -32,7 +32,7 @@ public class AssetLoader {
 	public static Sound fx_missionAccomplished;
 	public static Sound fx_buttonClick;
 	
-	public static AssetManager manager;
+	public static AssetManager manager = new AssetManager();
 	
 	private static void loadTextures(String... files) {
 		for (String fileName : files)
@@ -52,7 +52,6 @@ public class AssetLoader {
 	}
 	
 	public static void init() {
-		manager = new AssetManager();
 		final String[] files = new String[] {
 				"arrow.png", "noise0.png", "noise1.png", "noise2.png", "noise3.png",
 				"arrow.png", "circularArrow.png", "tick.png", "tick_transp.png",
@@ -61,9 +60,9 @@ public class AssetLoader {
 		};
 		loadTextures(files);
 		manager.load("areito de maguana v1.mp3", Music.class);
-		manager.load("FX_targetreached.wav", Sound.class);
-		manager.load("FX_missionaccomplished.wav", Sound.class);
-		manager.load("FX_buttonClick.wav", Sound.class);
+		manager.load("FX_targetreached.ogg", Sound.class);
+		manager.load("FX_missionaccomplished.ogg", Sound.class);
+		manager.load("FX_buttonClick.ogg", Sound.class);
 		manager.load("paddleSplash.wav", Sound.class);
 		manager.finishLoading();
 		
@@ -74,9 +73,10 @@ public class AssetLoader {
 						"nexusLogo", "titleScreen");
 				gameMusic = manager.get("areito de maguana v1.mp3", Music.class);
 				gameMusic.setLooping(true);
-				fx_targetReached = manager.get("FX_targetreached.wav", Sound.class);
-				fx_missionAccomplished = manager.get("FX_missionaccomplished.wav", Sound.class);
-				fx_buttonClick = manager.get("FX_buttonClick.wav", Sound.class);
+				gameMusic.setVolume(0.75f);
+				fx_targetReached = manager.get("FX_targetreached.ogg", Sound.class);
+				fx_missionAccomplished = manager.get("FX_missionaccomplished.ogg", Sound.class);
+				fx_buttonClick = manager.get("FX_buttonClick.ogg", Sound.class);
 				paddleSplash = manager.get("paddleSplash.wav", Sound.class);
 				finishedLoading = true;
 				};

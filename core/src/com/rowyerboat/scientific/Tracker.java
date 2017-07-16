@@ -95,7 +95,7 @@ public class Tracker {
 		timeTaken += delta;
 		if (timeElapsed > interval) {
 			points.add(boat.getPos().cpy());
-			currentData.add(boat.currentDisplacement.cpy());
+			currentData.add(boat.getCurrentDisplacement());
 			times.add(timeTaken);
 			timeElapsed = 0f;
 		}

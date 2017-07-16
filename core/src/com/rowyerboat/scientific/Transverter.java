@@ -123,14 +123,22 @@ public abstract class Transverter {
 			return ceil.getValue();
 		else if (floor != null && ceil == null)
 			return floor.getValue();
+		else if (floor.equals(ceil))
+			return floor.getValue();
 		
 		float fac = Math.abs(gamePos.y - floor.getKey())/Math.abs(floor.getKey() - ceil.getKey());
-		return floor.getValue() * fac + ceil.getValue() * (1 - fac);
+		Float value = floor.getValue() * fac + ceil.getValue() * (1.0f - fac);
+		if (value <= 0.9f || value >= 1 || value.equals(Float.NaN)) {
+			Gdx.app.log("LocationScale", "Something wrong, got " + value);
+			return 1f;
+		}
+		return value;
 	}
 	
 	/**
 	 * Initialize the lookup table for the ingame scaling due to the mercator projection
 	 */
+	@SuppressWarnings("unchecked")
 	public static void init() {
 		Json json = new Json();
 		TreeMap<Object, Object> lookup = new TreeMap<Object, Object>();
@@ -142,5 +150,6 @@ public abstract class Transverter {
 		for (float lat = minLat, i = 0; i < values.size; lat += stepsize, i++) {
 			ingameValues.put((lat - minLat)/(maxLat - minLat) * worldHeight, values.get((int)i));
 		}
+		//debug: for (Float f : ingameValues.keySet()) System.out.println(f + " : " + ingameValues.get(f));
 	}
 }

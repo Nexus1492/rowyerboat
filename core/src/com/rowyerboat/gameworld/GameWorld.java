@@ -39,7 +39,8 @@ public class GameWorld {
 
 	private boolean startRowing;
 	private Sound paddleSplash;
-
+	
+	private String intersectName;
 	private Array<String> targetsHit;
 
 	private Vector2[] resetPosDir;
@@ -92,7 +93,7 @@ public class GameWorld {
 			boat.moveBowAndStern(currDirBow, currDirStern, delta);
 		}
 
-		String intersectName = intersectBoatAndIsland();
+		intersectName = intersectBoatAndIsland();
 		if (intersectName != null) {
 			if (target.name.equals(intersectName)) {
 				targetsHit.add(intersectName);
@@ -150,29 +151,26 @@ public class GameWorld {
 	 * @return null if no intersection else the locations name
 	 */
 	private String intersectBoatAndIsland() {
-		if (target.isConvex)
-			if (Intersector.overlapConvexPolygons(boat.getHitbox(), target.getHitbox()))
-				return target.name;
 		for (int i = 0; i < locations.size; ++i) {
-			if (Intersector.overlaps(locations.get(i).getHitbox().getBoundingRectangle(),
+			if (Intersector.overlaps(locations.get(i).getHitboxPoly().getBoundingRectangle(),
 					boat.getHitbox().getBoundingRectangle())) {
-				for (int j = 0; j < boat.getHitbox().getVertices().length / 2; j++) {
+				for (int j = 0; j < boat.getHitbox().getTransformedVertices().length; j += 2) {
 					Polygon boatPoly = boat.getHitbox();
-					if (locations.get(i).isConvex) {
-						Polygon islandPoly = locations.get(i).getHitbox();
+					Vector2 boatPoint = new Vector2(boatPoly.getTransformedVertices()[j],
+							boatPoly.getTransformedVertices()[j + 1]);
+					if (locations.get(i).getTriangles().length == 0) {
+						Polygon islandPoly = locations.get(i).getHitboxPoly();
 						if (Intersector.isPointInPolygon(islandPoly.getTransformedVertices(), 0,
-								islandPoly.getVertices().length, boatPoly.getTransformedVertices()[j * 2],
-								boatPoly.getTransformedVertices()[j * 2 + 1]))
+								islandPoly.getVertices().length, boatPoint.x, boatPoint.y))
 							return locations.get(i).name;
 					} else {
-						for (Polygon islandPoly : locations.get(i).getTriangles())
-							if (Intersector.isPointInPolygon(islandPoly.getTransformedVertices(), 0,
-									islandPoly.getVertices().length, boatPoly.getTransformedVertices()[j * 2],
-									boatPoly.getTransformedVertices()[j * 2 + 1])) {
+						for (Polygon islandPoly : locations.get(i).getTriangles()) {
+							float[] verts = islandPoly.getTransformedVertices();
+							if (Intersector.isPointInTriangle(boatPoint, new Vector2(verts[0], verts[1]),
+									new Vector2(verts[2], verts[3]), new Vector2(verts[4], verts[5])))
 								return locations.get(i).name;
-							}
+						}
 					}
-
 				}
 			}
 		}
@@ -226,7 +224,7 @@ public class GameWorld {
 			AssetLoader.fx_missionAccomplished.play();
 			Gdx.app.log("Mission", "Accomplished.");
 		} else {
-			Gdx.app.log("Mission", "Failed.");
+			Gdx.app.log("Mission", "Failed: Crashed into " + intersectName);
 		}
 		gameScreen.end(isWin);
 	}
@@ -248,7 +246,6 @@ public class GameWorld {
 	}
 
 	public void dispose() {
-
 	}
 
 	public void testShaper(ShapeRenderer shaper) {
@@ -267,73 +264,5 @@ public class GameWorld {
 
 	public Array<Location> getLocations() {
 		return locations;
-	}
-
-	private boolean intersectPolys(Polygon p1, Polygon p2) {
-		// Convert polygons into more practical format
-		ArrayList<Vector2> p1Points = new ArrayList<Vector2>();
-		ArrayList<Vector2> p2Points = new ArrayList<Vector2>();
-		for (int i = 0; i < p1.getVertices().length; i += 2) {
-			p1Points.add(new Vector2(p1.getVertices()[i], p1.getVertices()[i + 1]));
-		}
-		for (int i = 0; i < p2.getVertices().length; i += 2) {
-			p2Points.add(new Vector2(p2.getVertices()[i], p2.getVertices()[i + 1]));
-		}
-
-		// Reusable point for determining the point of intersection between two
-		// line segments
-		Vector2 intersectionPoint;
-		ArrayList<Vector2> outputList = p1Points;
-		ArrayList<Vector2> inputList = new ArrayList<Vector2>();
-		Vector2 edgePoint1;
-		Vector2 edgePoint2;
-		// Define the current points of the clip edge
-		for (int i = 0; i < p2Points.size(); i++) {
-			edgePoint1 = p2Points.get(i);
-			// Wrap around to beginning of array if index points to the end
-			edgePoint2 = i < p2Points.size() - 1 ? p2Points.get(i + 1) : p2Points.get(0);
-			inputList.clear();
-			// Add all elements to input list
-			for (Vector2 p : outputList) {
-				inputList.add(p);
-			}
-			outputList.clear();
-
-			if (inputList.isEmpty()) {
-				return false;
-			}
-
-			Vector2 s = inputList.get(inputList.size() - 1);
-
-			for (Vector2 e : inputList) {
-				Vector2 intersection = new Vector2();
-				// determine if point is inside clip edge
-				if (Intersector.pointLineSide(edgePoint2, edgePoint1, e) > 0) {
-					if (!(Intersector.pointLineSide(edgePoint2, edgePoint1, s) > 0)) {
-						Intersector.intersectLines(s, e, edgePoint1, edgePoint2, intersection);
-						outputList.add(intersection);
-					}
-					outputList.add(e);
-				} else if (Intersector.pointLineSide(edgePoint2, edgePoint1, s) > 0) {
-					Intersector.intersectLines(s, e, edgePoint1, edgePoint2, intersection);
-					outputList.add(intersection);
-				}
-				s = e;
-			}
-		}
-		if (!outputList.isEmpty()) {
-			float verts[] = new float[outputList.size() * 2];
-			int i = 0;
-			for (Vector2 vector2 : outputList) {
-				verts[i] = vector2.x;
-				verts[i + 1] = vector2.y;
-				i += 2;
-			}
-			// overlap.setVertices(verts);
-			return true;
-		} else {
-			// overlap.setVertices(new float[0]);
-			return false;
-		}
 	}
 }

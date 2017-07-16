@@ -119,7 +119,7 @@ public class HttpPoster {
 		}
 	}
 	
-	public static void showOnlyHighscores(MissionID missionID, boolean useEnergy) {
+	public static void getHighscores(MissionID missionID, boolean useEnergy) {
 		HttpRequest req = new HttpRequest(HttpMethods.GET);
 		req.setUrl(url);
 		req.setContent("Energy=" + (useEnergy ? "ON" : "OFF") + "&Mission=" + missionID.toString());

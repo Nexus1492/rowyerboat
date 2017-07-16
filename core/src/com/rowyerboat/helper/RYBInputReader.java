@@ -51,14 +51,20 @@ public class RYBInputReader implements InputProcessor {
 		switch (keycode) {
 		
 		case (Keys.PLUS):
-			renderer.islandScale += 0.25f;
-			return true;
+			if (Settings.userData.getBoolean("superUser")) {
+				renderer.islandScale += 0.25f;
+				return true;
+			} else
+				return false;
 			
 		case (Keys.MINUS):
-			renderer.islandScale -= 0.25f;
-			return true;
+			if (Settings.userData.getBoolean("superUser")) {
+				renderer.islandScale -= 0.25f;
+				return true;
+			} else
+				return false;
 
-		// Boat Controlls
+		// Boat Controls
 		case (Keys.LEFT):
 			if (ctrl)
 				world.boatLeftStop();
@@ -97,28 +103,43 @@ public class RYBInputReader implements InputProcessor {
 			
 		// Interface
 		case(Keys.D):
-			Settings.debug = !Settings.debug;
-			return true;
+			if (Settings.userData.getBoolean("superUser")) {
+				Settings.debug = !Settings.debug;
+				return true;
+			} else
+				return false;
 		
 		case(Keys.H):
-			Settings.hud = !Settings.hud;
-			return true;
+			if (Settings.userData.getBoolean("superUser")) {
+				Settings.hud = !Settings.hud;
+				return true;
+			} else
+				return false;
 			
 		case(Keys.M):
 			game.setScreen(new WorldMapScreen());
 			return true;
-			
+		
 		case (Keys.F1):
-			switchCameraNext();
-			return true;
+			if (Settings.userData.getBoolean("superUser")) {
+				switchCameraNext();
+				return true;
+			} else
+				return false;
 		
 		case (Keys.F2):
-			switchCameraPrevious();
-			return true;
+			if (Settings.userData.getBoolean("superUser")) {
+				switchCameraPrevious();
+				return true;
+			} else
+				return false;
 		
 		case (Keys.F3):
-			switchCameraDistance();
-			return true;
+			if (Settings.userData.getBoolean("superUser")) {
+				switchCameraDistance();
+				return true;
+			} else
+				return false;
 
 		// ShaderID
 		case (Keys.NUM_1):
@@ -199,11 +220,11 @@ public class RYBInputReader implements InputProcessor {
 		if (amount > 0) {
 			renderer.camDistNear += ticks;
 			renderer.camDistFar += ticks;
-			renderer.camOrthoDist += 50f * ticks;
+			renderer.camDistOrtho += 50f * ticks;
 		} else {
 			renderer.camDistNear -= ticks;
 			renderer.camDistFar -= ticks;
-			renderer.camOrthoDist -= 50f * ticks;
+			renderer.camDistOrtho -= 50f * ticks;
 		}
 		return true;
 	}

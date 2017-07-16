@@ -1,5 +1,7 @@
 package com.rowyerboat.helper;
 
+import java.util.Locale;
+
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
@@ -49,7 +51,7 @@ public class Settings {
 	// set by missionSelection screen and on startup
 	private static Mission mission; // needs to be private in order to not mess up things, call setMission() instead
 	public static MissionID missionID;
-	public static boolean useEnergy;
+	final public static boolean useEnergy = false;
 	
 	// set by game screen
 	public static GameWorld world;
@@ -66,12 +68,12 @@ public class Settings {
 		
 		userIDOffset = userData.getString("userIDoffset", "");
 		
-		useEnergy = lastSession.getBoolean("lastMissionEnergy", false);
+		//useEnergy = lastSession.getBoolean("lastMissionEnergy", false);
 		
 		// Read out the last Mission
-		setMission(Mission.getMission(MissionID.valueOf(
-				lastSession.getString("lastMission", MissionID.Pottery.toString())
-				)).id); // if no last mission is given, set lastMission to POTTERY ACQUISITION
+		lastSession = Gdx.app.getPreferences("rowyerboat.lastSession");
+		setMission(MissionID.valueOf(lastSession.getString("lastMission",
+				MissionID.Pottery.toString()))); // if no last mission is given, set lastMission to POTTERY ACQUISITION
 		
 		firstTime = userData.getBoolean("firstTime", true);
 		
@@ -83,28 +85,30 @@ public class Settings {
 	
 	private static void checkVersion() {
 		float version = userData.getFloat("version", 1.00f);
-		float curr_version = 1.04f;
+		float curr_version = version;
 		if (version < 1.01f) {
 			userData.remove("lastMission");
 			userData.putBoolean("lastMissionEnergy", false);
 			userData.putBoolean("tutorialDisplayed", false);
+			version = 1.01f;
 		}
 		if (version < 1.02f) {
 			userData.remove("lastMission");
 			userData.remove("lastMissionEnergy");
 			lastSession.putBoolean("lastMissionEnergy", false);
 			setMission(MissionID.Pottery);
+			version = 1.02f;
 		}
 		if (version < 1.03f) {
 			// Bugfix: Highscores are not properly saved (only for "Mission01ON"/"Mission01OFF")
-			highscores.putFloat(Mission.MissionID.Pottery + "ON",
+			/*highscores.putFloat(Mission.MissionID.Pottery + "ON",
 					highscores.getFloat("Mission01ON", Float.MAX_VALUE));
 			highscores.putFloat(Mission.MissionID.Pottery + "OFF",
 					highscores.getFloat("Mission01OFF", Float.MAX_VALUE));
 			highscores.putFloat(Mission.MissionID.JaguarTeeth + "ON", Float.MAX_VALUE);
 			highscores.putFloat(Mission.MissionID.JaguarTeeth + "OFF", Float.MAX_VALUE);
 			highscores.remove("Mission01ON");
-			highscores.remove("Mission01OFF");
+			highscores.remove("Mission01OFF");*/
 
 			// save userIDoffset as negative integer
 			if (userData.getString("userIDoffset", null) == null) {
@@ -114,8 +118,9 @@ public class Settings {
 			} // if userIDoffset is already set, make sure it is negative
 			else if (userData.getString("userIDoffset").charAt(0) != '-')
 				userData.putString("userIDoffset", "-" + userData.getString("userIDoffset"));
+			version = 1.03f;
 		}
-		if (version < 1.04 && version < curr_version) {
+		if (version < 1.04f) {
 			campaignProgress.putBoolean("TutorialCampaign_UNLOCKED", true);
 			campaignProgress.putBoolean("Campaign01_UNLOCKED", true);
 			campaignProgress.putBoolean("Campaign01Dyn_UNLOCKED", true);
@@ -125,8 +130,22 @@ public class Settings {
 			lastSession.putBoolean("lastMissionEnergy", false);
 			
 			userData.putBoolean("tutorialDisplayed", true);
+			
+			version = 1.04f;		
 		}
-		userData.putFloat("version", curr_version);
+		if (version < 1.05f) {
+			// undo from v1.03
+			for (String str : highscores.get().keySet())
+				highscores.putFloat(str, -1f);
+			version = 1.05f;
+		}
+		if (version < 1.052f && version < curr_version) {
+			version = 1.052f;
+		}
+		if (version > curr_version)
+			Gdx.app.log("Updated Version", String.format(Locale.US, "From v%.2f to v%.2f", 
+					curr_version, version));
+		userData.putFloat("version", version);
 		userData.flush();
 		lastSession.flush();
 		highscores.flush();
@@ -134,7 +153,7 @@ public class Settings {
 	}
 
 	public static void updateEnergy(boolean nrg) {
-		useEnergy = nrg;
+		//useEnergy = nrg;
 		userData.putBoolean("lastMissionEnergy", nrg);
 		userData.flush();
 	}
@@ -145,6 +164,7 @@ public class Settings {
 	 * @param mis
 	 */
 	public static void setMission(MissionID mis) {
+		Gdx.app.log("Mission is set", mis.toString());
 		missionID = mis;
 		mission = Mission.getMission(missionID);
 		map = mission.map;

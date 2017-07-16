@@ -1,5 +1,6 @@
 package com.rowyerboat.gameobjects;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Rectangle;
@@ -27,7 +28,7 @@ public class Boat {
 	 * 	length reflects m/s */
 	private Vector2 currentDirection;
 	
-	public Vector2 currentDisplacement;
+	private Vector2 currentDisplacement;
 	/** position of the boat's mid in the gameworld; functions as its position */
 	private Vector2 midPoint;
 	/** time elapsed since the last stroke */
@@ -44,7 +45,7 @@ public class Boat {
 	private final float interval;
 	private float rotation = 0;
 	/** maxSpeed in m/s */
-	private float maxSpeed;
+	private float maxSpeed = 1.5f; // x km/h <=> x * 1000 / 3600
 
 	/** amount of energy left */
 	private float energy = 100;
@@ -110,8 +111,7 @@ public class Boat {
 		bowPoint = new Vector2();
 		sternPoint = new Vector2();
 		
-		// 6 km/h <=> 6 * 1000 / 3600
-		maxSpeed = 6f * (1000f / 3600f);
+		
 		
 		/*
 		 * 5 4 3
@@ -144,18 +144,13 @@ public class Boat {
 	 */
 	public void update(float delta) {
 		t += delta;
-		locationScale = Transverter.getLocationScale(midPoint);
-		
-		/*if (midPoint.x < 0)
-			midPoint.x = 0;
-		if (midPoint.x > world.width)
-			midPoint.x = world.width;
-		if (midPoint.y < 0)
-			midPoint.y = 0;
-		if (midPoint.y > world.height)
-			midPoint.y = world.height;*/
-		
-		if (!(new Rectangle(0, 0, world.width, world.height).contains(midPoint))) {
+		locationScale = Transverter.getLocationScale(midPoint.cpy());
+		if (midPoint.x < 0
+				|| midPoint.x > world.width
+				|| midPoint.y < 0
+				|| midPoint.y > world.height) {
+		//if (!(new Rectangle(0, 0, world.width, world.height).contains(midPoint))) {
+			Gdx.app.log("Failed", "Boat fell out of this world at " + midPoint);
 			GameScreen.class.cast(Settings.game.getScreen()).end(false);
 		}
 
@@ -301,10 +296,6 @@ public class Boat {
 		return midPoint.cpy();
 	}
 	
-	public Vector2 getMid() {
-		return midPoint.cpy();
-	}
-	
 	public float getRotation() {
 		return rotation;
 	}
@@ -394,5 +385,12 @@ public class Boat {
 	
 	public void resetBoat(Vector2 pos) {
 		new Boat(world, pos);
+	}
+
+	public Vector2 getCurrentDisplacement() {
+		if (currentDisplacement != null)
+			return currentDisplacement.cpy();
+		else
+			return new Vector2(0, 0);
 	}
 }

@@ -207,11 +207,11 @@ public class HighscoreScreen implements Screen {
 			personalscore.add(new Label("Mission: ", style)).left();
 			personalscore.add(new Label(mission.name, style)).right();
 			personalscore.row();
-			personalscore.add(new Label("Energy: ", style)).left();
+			/*personalscore.add(new Label("Energy: ", style)).left();
 			personalscore.add(new Label(Settings.useEnergy ? "On" : "Off", style)).right();
-			personalscore.row();
+			personalscore.row();*/
 			personalscore.add(new Label("Status: ", style)).left();
-			personalscore.add(new Label(win || (recordTime > 0 && timeTaken == 0.5f) ?
+			personalscore.add(new Label(win || (recordTime > 0 && timeTaken == 0f) ?
 					"Accomplished" : "Failed", style)).right();
 			personalscore.row();
 			personalscore.add(new Label("Time: ", style)).left();

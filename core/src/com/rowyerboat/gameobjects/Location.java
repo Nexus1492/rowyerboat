@@ -15,10 +15,10 @@ public class Location {
 	public ModelInstance modelInstance;
 	
 	protected Polygon hitbox;
-	private Polygon[] hitboxTriangles;
+	private Polygon[] hitboxTriangles; // TODO rework this and move it to the hitbox class
 	
 	protected Vector2 pos;
-	
+
 	protected float dangerRadius = 0;
 	
 	// TODO: rework to actually check the hitbox
@@ -63,31 +63,16 @@ public class Location {
 	public Location(String name, Vector2 pos, float hitboxRadius) {
 		this.name = name;
 		this.pos = pos;
-		this.setCircleHitbox(hitboxRadius);
+		this.hitbox = Hitbox.setCircleHitbox(pos, hitboxRadius, 32).getPoly(); //magic number
+		this.isConvex = true;
 	}
 	
 	public Vector2 getPos() {
 		return pos.cpy();
 	}
 	
-	public Polygon getHitbox() {
+	public Polygon getHitboxPoly() {
 		return hitbox;
-	}
-	
-	public Location setCircleHitbox(float radius) {
-		return setCircleHitbox(radius, 32); //magic number
-	}
-	
-	public Location setCircleHitbox(float radius, int numPoints) {
-		float[] vecs = new float[numPoints * 2];
-		for (int i = 0; i < numPoints; ++i) {
-			float factor = (float)(i+1) / (float)numPoints;
-			vecs[i * 2] = pos.x + MathUtils.cosDeg(factor * 360f) * radius;
-			vecs[i * 2 + 1] = pos.y + MathUtils.sinDeg(factor * 360f) * radius;
-		}
-		hitbox = new Polygon(vecs);
-		isConvex = true;
-		return this;
 	}
 	
 	public Polygon[] getTriangles() {

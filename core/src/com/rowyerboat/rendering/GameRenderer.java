@@ -75,7 +75,7 @@ public class GameRenderer {
 	protected PerspectiveCamera camera;
 	public float camDistNear = 30f * Settings.boatScale;
 	public float camDistFar = 130f * Settings.boatScale;
-	public float camOrthoDist = 8000f;
+	public float camDistOrtho = 8000f;
 	private Viewport viewport3D;
 	private OrthographicCamera hudCam;
 
@@ -144,11 +144,11 @@ public class GameRenderer {
 		this.target = world.getTarget();
 		this.locations = world.getLocations();
 		this.boatBox = boat.getHitbox();
-		target.getHitbox();
+		target.getHitboxPoly();
 		this.currentGrid = world.getCurrentGrid();
 		MathUtils.random.setSeed(world.getSeed());
 		boatDir = boat.getDir();
-		boatMid = boat.getMid();
+		boatMid = boat.getPos();
 
 		modelBatch = new ModelBatch();
 
@@ -211,7 +211,7 @@ public class GameRenderer {
 		target = world.getTarget();
 		targetPos = target.getPos();
 		boatDir = boat.getDir();
-		boatMid = boat.getMid();
+		boatMid = boat.getPos();
 		boatMidV3 = new Vector3(boatMid.x, boatMid.y, 0f);
 		boatToTarget = targetPos.cpy().sub(boatMid);
 
@@ -569,6 +569,7 @@ public class GameRenderer {
 			break;
 
 		case ortho:
+			camera.far = camDistOrtho;
 			cameraOrtho();
 			camera.update();
 			break;
@@ -598,7 +599,7 @@ public class GameRenderer {
 	private void cameraOrtho() {
 		cameraDirV2.set(boatDir.cpy());
 
-		cameraPos.set(world.width / 2, world.height / 2, camOrthoDist);
+		cameraPos.set(world.width / 2, world.height / 2, camDistOrtho);
 		cameraLookAt.set(world.width / 2, world.height / 2, 0f);
 
 		camera.position.set(cameraPos);
@@ -671,10 +672,11 @@ public class GameRenderer {
 		shaper.circle(boat.sternPoint.x, boat.sternPoint.y, .1f);
 		shaper.setColor(Color.FIREBRICK);
 		for (int i = 0; i < locations.size; ++i) {
-			shaper.polygon(locations.get(i).getHitbox().getTransformedVertices());
 			for (Polygon poly : locations.get(i).getTriangles()) {
+				shaper.setColor(Color.BLUE);
 				if (locations.get(i).getPos().dst(boat.getPos()) < 1000)
 					shaper.polygon(poly.getTransformedVertices());
+				shaper.setColor(Color.RED);
 				for (int j = 0; j < 4; ++j)
 					if (Intersector.isPointInPolygon(poly.getTransformedVertices(), 0, poly.getVertices().length,
 							boat.getHitbox().getTransformedVertices()[j * 2],
@@ -688,6 +690,7 @@ public class GameRenderer {
 						shaper.set(ShapeType.Line);
 					}
 			}
+			shaper.polygon(locations.get(i).getHitboxPoly().getTransformedVertices());
 
 		}
 		if (cameraMode == CameraMode.ortho) {

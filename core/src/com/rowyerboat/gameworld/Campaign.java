@@ -55,14 +55,14 @@ public class Campaign {
 		campaignMissions = new ArrayList<Mission>();
 		switch (id) {
 		case Campaign01:
-			addMission(MissionID.Pottery);
 			addMission(MissionID.JaguarTeeth);
 			addMission(MissionID.JaguarTeeth2);
+			addMission(MissionID.Pottery);
 			break;
 		case Campaign01Dyn:
-			addMission(MissionID.PotteryDyn);
 			addMission(MissionID.JaguarTeethDyn);
 			addMission(MissionID.JaguarTeeth2Dyn);
+			addMission(MissionID.PotteryDyn);
 			break;
 		case TutorialCampaign:
 			addMission(MissionID.Tutorial0);

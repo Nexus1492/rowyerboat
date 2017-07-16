@@ -113,9 +113,9 @@ public class GameUI {
 		
 		batch.begin();
 		
-		bottomUpHUD("BoatPos: " + boat.getMid(),
+		bottomUpHUD("BoatPos: " + boat.getPos(),
 				"CameraPos: " + camera3D.position,
-				"BoatMid: " + (int)boat.getMid().x + ", " + (int)boat.getMid().y,
+				"BoatMid: " + (int)boat.getPos().x + ", " + (int)boat.getPos().y,
 				"Current Speed: " + String.format("%2.1f, with %.3f / %.3f",
 						boat.currSpeed[2], boat.currSpeed[0], boat.currSpeed[1]),
 				"Boatdimensions: " 
@@ -247,12 +247,13 @@ public class GameUI {
 				batch.draw(circularArrowImage, x, y, res/2, res/2, res, res, 1, 1,
 						cameraDirV2.angle(boatToTarget), 0, 0, res, res, false, false);
 				
-				float forward = Math.abs(boat.getDir().angle(boat.getDirOverGround()));
+				/*float forward = Math.abs(boat.getDir().angle(boat.getDirOverGround()));
 				Color arrowCol = new Color(
 						forward > 90 ? -MathUtils.cosDeg(forward) : 0,
 						forward < 90 ?  MathUtils.cosDeg(forward) : 0,
 						MathUtils.sinDeg(forward),
-						1.0f);
+						1.0f);*/
+				Color arrowCol = Color.GREEN;
 				batch.setColor(arrowCol);
 				float stretchFactor = 2.0f; //Math.max(ratio, 1.0f);
 				if (boat.getCurrentDir().len2() != 0)
@@ -320,8 +321,8 @@ public class GameUI {
 		Table buttonTable = new Table();
 		buttonTable.add(zoomIn).pad(5f).row();
 		buttonTable.add(zoomOut).pad(5f).row();
-		buttonTable.add(debug).pad(5f).row();
-		buttonTable.add(hud).pad(5f).row();
+		//buttonTable.add(debug).pad(5f).row();
+		//buttonTable.add(hud).pad(5f).row();
 		buttonTable.add(mapButton).pad(5f).row();
 		buttonTable.top().right().setPosition(stage.getWidth(), stage.getHeight());
 		

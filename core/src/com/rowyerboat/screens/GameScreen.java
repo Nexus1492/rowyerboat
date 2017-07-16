@@ -62,6 +62,7 @@ public class GameScreen implements Screen {
 	public void show() {
 		Gdx.input.setInputProcessor(gameInput);
 		doUpdate = true;
+		Gdx.app.log("World Measures", world.width + " x " + world.height);
 	}
 
 	@Override
