@@ -144,8 +144,8 @@ public class HighscoreScreen implements Screen {
 			
 			TextButton menuButton = new BackButton("Back to Menu", skin);
 			
-			TextButton nextMissionButton = new TextButton("Next Mission", skin);
-			nextMissionButton.addListener(new ClickListener() {
+			TextButton missionSelectionButton = new TextButton("Select Mission", skin);
+			missionSelectionButton.addListener(new ClickListener() {
 				@Override
 				public void clicked(InputEvent event, float x, float y) {
 					Settings.setMission(Campaign.getCampaign(mission.campaignID)
@@ -158,11 +158,7 @@ public class HighscoreScreen implements Screen {
 			buttonTable.add(retryButton.pad(10f)).pad(padding);
 			buttonTable.add(mapButton.pad(10f)).pad(padding);
 			buttonTable.add(menuButton.pad(10f)).pad(padding);
-			buttonTable.add(nextMissionButton.pad(10f)).pad(padding);
-			if (Campaign.getCampaign(Settings.missionID).nextMission(Settings.missionID) == null) {
-				nextMissionButton.setChecked(true);
-				nextMissionButton.setTouchable(Touchable.disabled);
-			}
+			buttonTable.add(missionSelectionButton.pad(10f)).pad(padding);
 			
 			Table masterTable = new Table();
 			masterTable.add(leftTable).padRight(10f).center().top();
@@ -177,7 +173,7 @@ public class HighscoreScreen implements Screen {
 					Settings.game.getScreen().getClass() == MissionSelectionScreen.class) {
 				retryButton.setVisible(false);
 				mapButton.setVisible(false);
-				nextMissionButton.setVisible(false);
+				missionSelectionButton.setVisible(false);
 			}
 		}
 

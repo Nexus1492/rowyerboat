@@ -139,8 +139,10 @@ public class Settings {
 				highscores.putFloat(str, -1f);
 			version = 1.05f;
 		}
-		if (version < 1.052f && version < curr_version) {
-			version = 1.052f;
+		if (version < 1.052f) {
+			userData.putString("userID", userData.getString("userID", "").trim()); // cleanup userID
+			System.out.println(userData.getString("userID").trim());
+			//version = 1.052f;
 		}
 		if (version > curr_version)
 			Gdx.app.log("Updated Version", String.format(Locale.US, "From v%.2f to v%.2f", 

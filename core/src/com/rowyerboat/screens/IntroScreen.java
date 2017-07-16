@@ -127,6 +127,7 @@ public class IntroScreen implements Screen {
 				canceled();
 			else {
 				Gdx.app.log("UserID", text);
+				text = text.trim();
 				Settings.userID = text;
 				Settings.userData.putString("userID", text);
 				Settings.userData.flush();

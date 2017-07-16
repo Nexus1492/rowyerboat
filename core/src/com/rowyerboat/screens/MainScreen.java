@@ -238,6 +238,8 @@ public class MainScreen implements Screen {
 					});
 				}
 			});
+			registerButton.setChecked(true);
+			//TODO rm registerButton.setTouchable(Touchable.disabled);
 
 			masterTable.add(nexusActor).width(nexusLogo.getWidth()).height(nexusLogo.getHeight()).row();
 			
@@ -254,14 +256,6 @@ public class MainScreen implements Screen {
 		@Override
 		public void draw() {
 			super.draw();
-			if (!Settings.online) {
-				registerButton.setChecked(true);
-				registerButton.setTouchable(Touchable.disabled);
-			} else {
-				registerButton.setChecked(false);
-				registerButton.setTouchable(Touchable.enabled);
-			}
-
 		}
 	}
 
