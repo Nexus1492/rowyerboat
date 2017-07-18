@@ -134,7 +134,7 @@ public class WorldMapScreen implements Screen {
 			quitButton.addListener(new ClickListener() {
 				@Override
 				public void clicked(InputEvent event, float x, float y) {
-					Settings.game.returnToLastScreen();
+					//Settings.game.returnToLastScreen(); TODO is this doing the trick?
 					Settings.world.gameEnd(false);
 				}
 			});

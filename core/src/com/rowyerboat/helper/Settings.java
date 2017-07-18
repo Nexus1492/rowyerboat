@@ -141,8 +141,7 @@ public class Settings {
 		}
 		if (version < 1.052f) {
 			userData.putString("userID", userData.getString("userID", "").trim()); // cleanup userID
-			System.out.println(userData.getString("userID").trim());
-			//version = 1.052f;
+			version = 1.052f;
 		}
 		if (version > curr_version)
 			Gdx.app.log("Updated Version", String.format(Locale.US, "From v%.2f to v%.2f", 
@@ -152,6 +151,7 @@ public class Settings {
 		lastSession.flush();
 		highscores.flush();
 		campaignProgress.flush();
+		Gdx.app.log("Version Number", "" + version);
 	}
 
 	public static void updateEnergy(boolean nrg) {

@@ -65,15 +65,24 @@ public class RowYerBoat extends Game {
 	}
 	
 	public void returnToLastScreen() {
-		Gdx.input.setInputProcessor(inputs.pop());
 		super.setScreen(screens.pop());
+		Gdx.input.setInputProcessor(inputs.pop());
 	}
 	
+	/**
+	 * Calls <code>setScreen(screen, true)</code>
+	 */
 	@Override
 	public void setScreen(Screen screen) {
 		setScreen(screen, true);
 	}
 	
+	/**
+	 * Set the gamescreen to be screen
+	 * @param screen
+	 * @param currentScreenReturnable if true, the current screen FROM WHICH this method is called
+	 * will be added to the stack
+	 */
 	public void setScreen(Screen screen, boolean currentScreenReturnable) {
 		if (currentScreenReturnable) {
 			screens.push(this.screen);

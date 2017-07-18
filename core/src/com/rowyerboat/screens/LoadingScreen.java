@@ -41,6 +41,8 @@ public class LoadingScreen implements Screen {
 	@Override
 	public void render(final float delta) {
 		stage.draw(delta);
+		if (Gdx.input.justTouched())
+			Settings.game.returnToLastScreen();
 		//if (Settings.game.init && AssetLoader.finishedLoading)
 		//	Settings.game.setScreen(new MainScreen());
 	}
@@ -136,7 +138,7 @@ public class LoadingScreen implements Screen {
 				loadingString += ".";
 			font.draw(batch, loadingString,
 					getWidth()/2 - stringWidth/2, getHeight() * 0.67f);
-
+			
 			batch.end();
 			super.draw();
 		}

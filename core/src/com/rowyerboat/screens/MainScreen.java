@@ -105,7 +105,7 @@ public class MainScreen implements Screen {
 		nexusActor.update(Math.min(time / threshold, 1));
 
 		stage.draw();
-		stage.act();
+		stage.act(delta);
 
 		if (time > threshold) {
 			Gdx.input.setInputProcessor(stage);
@@ -152,11 +152,16 @@ public class MainScreen implements Screen {
 	}
 
 	private class MainStage extends RYBStage {
+		float buttonPressed = -1;
 
 		public TextButton registerButton;
 
 		public MainStage() {
 			super();
+			TextButtonStyle tbs = skin.get("default", TextButtonStyle.class);
+			tbs.down = tbs.checked;
+			skin.add("default", tbs);
+			
 			Table masterTable = new Table();
 
 			final TextButton energyButton = new RYBButton("Energy\nON", skin);
@@ -188,6 +193,7 @@ public class MainScreen implements Screen {
 			final TextButton checkConnectionButton = new TextButton(". . .", skin);
 			checkConnectionButton.setPosition(getWidth() - 100 - 25, getHeight() - 50 - 25);
 			checkConnectionButton.addListener(new ClickListener() {
+				
 				@Override
 				public void clicked(InputEvent event, float x, float y) {
 					checkConnectionButton.setText(". . .");
@@ -212,9 +218,22 @@ public class MainScreen implements Screen {
 			});
 			addActor(checkConnectionButton);
 
-			registerButton = new RYBButton("Register Online", skin);
+			registerButton = new TextButton("Register Online", skin);
 			registerButton.addListener(new ClickListener() {
+				
 				@Override
+				public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+					buttonPressed = 0;
+					return true;
+				}
+				
+				@Override
+				public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+					buttonPressed = -1;
+					registerButton.setChecked(true);
+				}
+				
+				/*@Override
 				public void clicked(InputEvent event, float x, float y) {
 					registerButton.setChecked(false);
 					HttpRequest req = new HttpRequest(HttpMethods.GET);
@@ -236,15 +255,17 @@ public class MainScreen implements Screen {
 						}
 						
 					});
-				}
+				}*/
 			});
 			registerButton.setChecked(true);
-			//TODO rm registerButton.setTouchable(Touchable.disabled);
+			//registerButton.setTouchable(Touchable.disabled);
+			
+			RYBButton clearDataButton = new RYBButton("Clear All Data", skin);
 
 			masterTable.add(nexusActor).width(nexusLogo.getWidth()).height(nexusLogo.getHeight()).row();
 			
-			//masterTable.add(playButton.padLeft(5f).padRight(5f)).pad(5f).width(nexusLogo.getWidth()).row();
 			masterTable.add(playButton.padLeft(5f).padRight(5f)).pad(5f).width(nexusLogo.getWidth()).row();
+			//masterTable.add(clearDataButton.padLeft(5f).padRight(5f)).pad(5f).width(nexusLogo.getWidth()).row();
 			masterTable.add(registerButton.padLeft(5f).padRight(5f)).pad(5f).width(nexusLogo.getWidth());
 			
 			masterTable.setPosition(getWidth() / 2, getHeight() / 2);
@@ -252,10 +273,29 @@ public class MainScreen implements Screen {
 
 			fireButton(checkConnectionButton);
 		}
+		
+		@Override
+		public void act(float delta) {
+			if (buttonPressed >= 0) {
+				buttonPressed += delta;
+			} 
+			if (buttonPressed > 5f) {
+				buttonPressed = -1;
+				Settings.game.setScreen(new LoadingScreen());
+			}
+			super.act(delta);
+		}
 
 		@Override
 		public void draw() {
 			super.draw();
+		}
+	}
+	
+	public class ClearDataStage extends RYBStage { // TODO actually should be able to remove all data onclick...
+		public ClearDataStage() {
+			RYBButton okButton = new RYBButton("OK", skin);
+			RYBButton cancelButton = new RYBButton("Cancel", skin);
 		}
 	}
 
@@ -322,6 +362,7 @@ public class MainScreen implements Screen {
 		}
 		
 		public void update(String text) {
+			emailString = "";
 			textField.setText(text + emailString);
 		}
 	}

@@ -90,19 +90,30 @@ public abstract class Transverter {
 		return str;
 	}
 	
-	/** transform time in seconds into formatted String "%2d:%2d" */
+	/** transform time in seconds into formatted String "min:sec:msec" as "%2d:%2d:%d" */
 	public static String secondsToString(float secs) {
-		String str = String.format("%2d" + ":" + (secs % 60 < 10 ? "0" : "") + "%d:%s",
-				(int)(secs / 60),
-				(int)(secs % 60),
-				String.valueOf(secs - (int)secs + 0.005).substring(2, 4));
+		int min = (int)(secs / 60);
+		int sec = (int)(secs % 60);
+		int msec = (int)((secs - (int)secs + 0.005) * 100);
+		if (msec >= 100) {
+			msec -= 100;
+			sec += 1;
+			if (sec >= 60) {
+				sec -= 60;
+				min += 1;
+			}
+		}
+		String str = String.format("%2d:%02d:%02d",
+				min, sec, msec);
 		return str;
 	}
 	
-	/** transform String "%2d:%2d" into time in seconds */
+	/** transform String min:sec:msec as "%2d:%02d:%02d" into time in seconds */
 	public static float stringToSeconds(String str) {
 		String[] parts = str.split(":");
-		return Float.parseFloat(parts[0]) * 60 + Float.parseFloat(parts[1]);
+		return Float.parseFloat(parts[0]) * 60
+				+ Float.parseFloat(parts[1])
+				+ Float.parseFloat(parts[2])/100;
 	}
 	
 	/**
@@ -150,6 +161,28 @@ public abstract class Transverter {
 		for (float lat = minLat, i = 0; i < values.size; lat += stepsize, i++) {
 			ingameValues.put((lat - minLat)/(maxLat - minLat) * worldHeight, values.get((int)i));
 		}
-		//debug: for (Float f : ingameValues.keySet()) System.out.println(f + " : " + ingameValues.get(f));
+	}
+	
+	public static class GameTime {
+		private final Float val;
+		private final String str;
+		
+		public GameTime(Float fl) {
+			val = fl;
+			str = secondsToString(fl);
+		}
+		
+		public GameTime(String s) {
+			val = stringToSeconds(s);
+			str = s;
+		}
+		
+		public Float toFloat() {
+			return val;
+		}
+		
+		public String toString() {
+			return str;
+		}
 	}
 }
