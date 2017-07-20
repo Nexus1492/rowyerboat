@@ -1,41 +1,36 @@
 package com.rowyerboat.screens;
 
-import java.io.IOException;
-
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.PerspectiveCamera;
-import com.badlogic.gdx.input.GestureDetector;
-import com.badlogic.gdx.input.GestureDetector.GestureListener;
-import com.badlogic.gdx.scenes.scene2d.InputListener;
-import com.rowyerboat.gameworld.GameMap;
 import com.rowyerboat.gameworld.GameWorld;
-import com.rowyerboat.helper.InputReader;
+import com.rowyerboat.helper.AssetLoader;
+import com.rowyerboat.helper.RYBInputReader;
 import com.rowyerboat.helper.Settings;
 import com.rowyerboat.rendering.GameRenderer;
+import com.rowyerboat.scientific.Tracker;
 
 public class GameScreen implements Screen {
-	
-	private Game game;
+	InputMultiplexer gameInput;
 
 	private GameWorld world;
 	private GameRenderer renderer;
 	
 	private boolean doUpdate = false;
 
-	public GameScreen(Game game) {
-		InputReader input = new InputReader(game);
-		InputMultiplexer multi = new InputMultiplexer();
-		multi.addProcessor(input.ges);
-		multi.addProcessor(input);
-		Gdx.input.setInputProcessor(multi);
+	public GameScreen() {
+		RYBInputReader input = new RYBInputReader();
+		gameInput = new InputMultiplexer();
+		gameInput.addProcessor(input.ges);
+		gameInput.addProcessor(input);
+		Gdx.input.setInputProcessor(gameInput);
 		
-		this.game = game;
+		Settings.tracker = new Tracker();
 		this.world = new GameWorld(this);
 		this.renderer = new GameRenderer(world);
+		//this.renderer = new DebugWorldScreen(world);
 		
 		Settings.world = world;
 		Settings.renderer = renderer;
@@ -43,6 +38,8 @@ public class GameScreen implements Screen {
 		input.init(world, renderer);
 		
 		doUpdate = true;
+		
+		AssetLoader.gameMusic.play();
 	}
 
 	@Override
@@ -54,14 +51,18 @@ public class GameScreen implements Screen {
 	}
 	
 	public void end(boolean isWin) {
+		AssetLoader.gameMusic.stop();
 		doUpdate = false;
-		game.setScreen(new WorldMapScreen(new MainScreen(game), isWin));
+		Settings.getMission().reset();
+		Settings.tracker.isWin = isWin;
+		Settings.tracker.postPoints();
 	}
 	
 	@Override
 	public void show() {
-		Gdx.app.log("GameScreen", "Show");
+		Gdx.input.setInputProcessor(gameInput);
 		doUpdate = true;
+		Gdx.app.log("World Measures", world.width + " x " + world.height);
 	}
 
 	@Override

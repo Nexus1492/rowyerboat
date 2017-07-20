@@ -1,0 +1,4 @@
+- Fixed a bug where 1.995 seconds would be parsed as "1:00" instead of "2:00"
+- userIDs now are trimmed down such that they do not contain leading or trailing whitespaces (will cause bugs...)
+- hidden loading screen (press and hold "register online")
+- stacking map screens (small workaround - instantly call gameEnd(false) instead of first calling the former screen)

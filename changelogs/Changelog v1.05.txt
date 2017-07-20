@@ -1,0 +1,11 @@
+TODO
+    + "Register Online" Button: get text from the Server instead of hardcoded text => Update when finished
+    + zehntelsekunde
+    + static campaign und dynamic campaign mit currents direkt internal (4 verschiedene, bei jedem start der dynamic mission wird eine zufällig ausgewählt)
+    + pixel-perfect bounding boxes
+    + quit from worldmapscreen
+    - isHit irgendwie unschön
+    
+Vouchers:
+    - 25€ * 6 = 150 (pro Mission)
+    - 50€ * 2 = 100 (pro Campaign)

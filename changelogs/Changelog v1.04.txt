@@ -1,0 +1,23 @@
+- implementing the whole caribbean
+    - CSV import works properly
+    - SVGReader needs some finetuning as the SVG is simplified
+- cleaning an svg proves to be cumbersome and takes quiet a while - maybe upload currentdata on centralized server // SOLVED: StringBuilder (few minutes vs. milliseconds)
+- adding utility-screen to debug the world
+- logStack implemented
+
+- HttpPoster reworked to actually call the highscore screen by itself (tiny lag, but that's okay)
+- reworked the php-script on the serverside. highscores are saved with "[userID]-[userOffset]", but the user only gets to see the last (TODO, might adjust) FOUR digits of the offset (safety reasons). If adjusted, the HighscoreStage table must also be adjusted.
+
+- gameflow is now: disclaimer - main menu - mission select - game screen - highscores - main menu/map/game screen/mission screen
+
+TODO
+    + Tutorial missions
+    + Jan's missions
+    + Check if mobile or desktop, save to log => DONE
+    + method to test userID => highscore screen => CHECK
+    + Check version, save to log => DONE
+    + Somehow make sure that the current data is not manipulated => internal vs local => NEEDS TESTING
+    + GameMap must take care of the models or else it will be too complicated => NEEDS TESTING
+    + generate FONTS
+    ~ how to include text boxes for the tutorials?
+    + check if tutorial is succesfully completed, write to log

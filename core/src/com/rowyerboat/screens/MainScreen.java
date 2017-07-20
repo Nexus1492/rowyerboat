@@ -2,8 +2,13 @@ package com.rowyerboat.screens;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.Input.TextInputListener;
+import com.badlogic.gdx.Net.HttpMethods;
+import com.badlogic.gdx.Net.HttpRequest;
+import com.badlogic.gdx.Net.HttpResponse;
+import com.badlogic.gdx.Net.HttpResponseListener;
+import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL30;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -11,78 +16,67 @@ import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.BitmapFont.BitmapFontData;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
-import com.badlogic.gdx.scenes.scene2d.ui.TextField.TextFieldStyle;
-import com.badlogic.gdx.scenes.scene2d.ui.TextField;
-import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
-import com.badlogic.gdx.utils.Align;
-import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
-import com.rowyerboat.gameobjects.Location;
-import com.rowyerboat.gameworld.GameMap;
-import com.rowyerboat.gameworld.GameMap.MapID;
-import com.rowyerboat.gameworld.Mission;
 import com.rowyerboat.helper.AssetLoader;
+import com.rowyerboat.helper.HttpPoster;
 import com.rowyerboat.helper.Settings;
-import com.rowyerboat.scientific.Transverter;
- 
+import com.rowyerboat.scientific.Tracker;
+
 public class MainScreen implements Screen {
-	
-	Skin skin;
+
 	Stage stage;
-	SpriteBatch batch;
-	
+	Batch batch;
+	private Stage mainStage;
+	private RegisterStage registerStage;
+
 	NexusActor nexusActor;
- 
+
 	Game game;
-	
-	Viewport viewport;
-	
+
 	boolean win = false;
-	
+
 	float time = 0;
 	Texture nexusLogo;
 	Texture background;
-	
-	BitmapFont font;
-	
-	TextButton missionButton;
-	
+
+	TextButton playButton;
+
 	float timeLastTouched;
 	int timesTouched = 0;
-	
-	public MainScreen(Game g){
-		this.game = g;
-		
+
+	public MainScreen() {
+		this.game = Settings.game;
+
 		nexusLogo = AssetLoader.nexusLogo;
 		background = AssetLoader.titleScreen;
-		font = AssetLoader.font;
-		
+
 		nexusActor = new NexusActor();
-		
-		createStage();
-		
+
+		mainStage = new MainStage();
+		registerStage = new RegisterStage();
+		stage = mainStage;
+
+		batch = mainStage.getBatch();
+
 		Gdx.input.setCatchBackKey(true);
 	}
-	
-	public void render (float delta) {
-		if (Gdx.input.isKeyJustPressed(Keys.ENTER) ||
-				(Gdx.input.justTouched() ? Gdx.input.getX() < 40 && Gdx.input.getY() < 40 : false)) {
+
+	public void render(float delta) {
+		if (Gdx.input.isKeyJustPressed(Keys.ENTER)
+				|| (Gdx.input.justTouched() ? Gdx.input.getX() < 40 && Gdx.input.getY() < 40 : false)) {
 			timeLastTouched = time;
 			timesTouched++;
 		}
@@ -91,165 +85,300 @@ public class MainScreen implements Screen {
 		if (timesTouched > 3) {
 			timesTouched = 0;
 			Gdx.app.log("Highscores", "All highscores deleted.");
-			Settings.highscores.remove("Mission01OFF");
-			Settings.highscores.remove("Mission01ON");
+			for (String key : Settings.highscores.get().keySet()) {
+				Settings.highscores.remove(key);
+			}
+			Settings.highscores.flush();
 		}
-		missionButton.setText("Mission: " + Settings.mission.name);
-		
+
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL30.GL_COLOR_BUFFER_BIT);
-		
-		batch.setProjectionMatrix(stage.getCamera().combined);
+
+		batch.setProjectionMatrix(mainStage.getCamera().combined);
 		batch.begin();
 		batch.setColor(Color.WHITE);
-		batch.draw(background, 0, 0, stage.getWidth(), stage.getHeight());
+		batch.draw(background, 0, 0, mainStage.getWidth(), mainStage.getHeight());
 		batch.end();
-		
-			
+
 		float threshold = 1f;
-		time += delta;
-		nexusActor.update(Math.min(time/threshold, 1));
-		
+		time += delta; // here, time
+		nexusActor.update(Math.min(time / threshold, 1));
+
 		stage.draw();
-		stage.act();
-		
+		stage.act(delta);
+
 		if (time > threshold) {
 			Gdx.input.setInputProcessor(stage);
 			Gdx.input.setCatchBackKey(true);
 		}
-		
-		if (Gdx.input.isKeyJustPressed(Keys.BACK) || Gdx.input.isKeyJustPressed(Keys.BACKSPACE))
-			game.setScreen(new TutorialScreen(game, this));
-	}
 
-	public void createStage(){
-		batch = new SpriteBatch();
-		viewport = new FitViewport(Settings.width, Settings.height);
-		stage = new Stage(viewport, batch);
-		
-		Group grp = new Group();
- 
-		// A skin can be loaded via JSON or defined programmatically, either is fine. Using a skin is optional but strongly
-		// recommended solely for the convenience of getting a texture, region, etc as a drawable, tinted drawable, etc.
-		skin = new Skin();
-		// Generate a 1x1 white texture and store it in the skin named "white".
-		Pixmap pixmap = new Pixmap(100, 50, Format.RGBA8888);
-		pixmap.setColor(0.2f, 0.2f, 1f, 0.5f);
-		pixmap.fill();
- 
-		skin.add("blue", new Texture(pixmap));
- 
-		// Store the default libgdx font under the name "default".
-		BitmapFont bfont = AssetLoader.font;
-		//bfont.scale(1);
-		skin.add("default", bfont);
- 
-		// Configure a TextButtonStyle and name it "default". Skin resources are stored by type, so this doesn't overwrite the font.
-		TextButtonStyle textButtonStyle = new TextButtonStyle();
-		textButtonStyle.up = skin.newDrawable("blue", Color.LIGHT_GRAY);
-		textButtonStyle.down = skin.newDrawable("blue", Color.BLUE);
-		textButtonStyle.checked = skin.newDrawable("blue", Color.DARK_GRAY);
-		textButtonStyle.over = skin.newDrawable("blue", Color.BLUE);
- 
-		textButtonStyle.font = skin.getFont("default");
- 
-		skin.add("default", textButtonStyle);
- 
-		// Create a button with the "default" TextButtonStyle. A 3rd parameter can be used to specify a name other than "default".
-		TextButton playButton = new TextButton("Play", textButtonStyle);
-		playButton.setPosition(nexusActor.width/2 - 125, 0);
-		playButton.addListener(new ClickListener() {
-			@Override
-			public void clicked (InputEvent event, float x, float y) {
-				if (!win) {
-					Settings.map = new GameMap(TimeUtils.millis(), MapID.lesserAntilles);
-					Settings.mission.reset();
-					game.setScreen(new GameScreen(game));
-				} else
-					win = !win;
-			}
-		});
-		grp.addActor(playButton);
-
-		final TextButton energyButton = new TextButton("Energy\nON", textButtonStyle);
-		energyButton.setPosition(nexusActor.width/2 + 25, 0);
-		energyButton.setChecked(!Settings.useEnergy);
-		energyButton.setText("Energy\n" + (energyButton.isChecked() ? "OFF" : "ON"));
-		energyButton.addListener(new ClickListener() {
-			@Override
-			public void clicked (InputEvent event, float x, float y) {
-				energyButton.setChecked(energyButton.isChecked());
-				energyButton.setText("Energy\n" + (energyButton.isChecked() ? "OFF" : "ON"));
-				Settings.updateEnergy(!energyButton.isChecked());
-			}
-		});
-		grp.addActor(energyButton);
-		
-		missionButton = new TextButton("", textButtonStyle);
-		missionButton.setWidth(100 * 2 + 50);
-		missionButton.setPosition(playButton.getX(), -55);
-		missionButton.addListener(new ClickListener() {
-			@Override
-			public void clicked (InputEvent event, float x, float y) {
-				missionButton.setChecked(false);
-				if (!win) {
-					game.setScreen(new MissionSelectionScreen(game, (MainScreen)game.getScreen()));
-				} else
-					win = !win;
-			}
-		});
-		grp.addActor(missionButton);
-		
-		nexusActor.setPosition(0, 25);
-		grp.addActor(nexusActor);
-		grp.setPosition((stage.getWidth() - nexusActor.width)/2, 120);
-		
-		stage.addActor(grp);
+		if (Gdx.input.isKeyJustPressed(Keys.BACK) || Gdx.input.isKeyJustPressed(Keys.ESCAPE))
+			Gdx.app.exit();
 	}
 
 	@Override
-	public void resize (int width, int height) {
-		viewport.update(width, height);
+	public void resize(int width, int height) {
+		stage.getViewport().update(width, height);
 	}
-	
+
 	@Override
-	public void dispose () {
+	public void dispose() {
 		stage.dispose();
-		skin.dispose();
 	}
- 
+
 	@Override
 	public void show() {
- 
+		Settings.tracker = new Tracker();
+		HttpPoster.checkStack();
 	}
- 
+
 	@Override
 	public void hide() {
- 
 	}
- 
+
 	@Override
 	public void pause() {
- 
 	}
- 
+
 	@Override
 	public void resume() {
- 
+	}
+
+	protected void switchStages() {
+		if (stage.getClass().equals(MainStage.class))
+			stage = registerStage;
+		else
+			stage = mainStage;
+	}
+
+	private class MainStage extends RYBStage {
+		float buttonPressed = -1;
+
+		public TextButton registerButton;
+
+		public MainStage() {
+			super();
+			TextButtonStyle tbs = skin.get("default", TextButtonStyle.class);
+			tbs.down = tbs.checked;
+			skin.add("default", tbs);
+			
+			Table masterTable = new Table();
+
+			final TextButton energyButton = new RYBButton("Energy\nON", skin);
+			energyButton.setChecked(!Settings.useEnergy);
+			energyButton.setText("Energy\n" + (energyButton.isChecked() ? "OFF" : "ON"));
+			energyButton.addListener(new ClickListener() {
+				@Override
+				public void clicked(InputEvent event, float x, float y) {
+					energyButton.setChecked(energyButton.isChecked());
+					energyButton.setText("Energy\n" + (energyButton.isChecked() ? "OFF" : "ON"));
+					//Settings.updateEnergy(!energyButton.isChecked());
+				}
+			});
+			// grp.addActor(energyButton);
+
+			playButton = new RYBButton("Play", skin);
+			playButton.setWidth(100 * 2 + 50);
+			playButton.addListener(new ClickListener() {
+				@Override
+				public void clicked(InputEvent event, float x, float y) {
+					playButton.setChecked(false);
+					if (!win) {
+						game.setScreen(new MissionSelectionScreen());
+					} else
+						win = !win;
+				}
+			});
+
+			final TextButton checkConnectionButton = new TextButton(". . .", skin);
+			checkConnectionButton.setPosition(getWidth() - 100 - 25, getHeight() - 50 - 25);
+			checkConnectionButton.addListener(new ClickListener() {
+				
+				@Override
+				public void clicked(InputEvent event, float x, float y) {
+					checkConnectionButton.setText(". . .");
+					checkConnectionButton.setDisabled(true);
+					checkConnectionButton.setChecked(true);
+					HttpPoster.checkConnection(new Runnable() {
+						@Override
+						public void run() {
+							checkConnectionButton.setDisabled(false);
+							checkConnectionButton.setChecked(false);
+							checkConnectionButton.setText("Online");
+						}
+					}, new Runnable() {
+						@Override
+						public void run() {
+							checkConnectionButton.setDisabled(false);
+							checkConnectionButton.setChecked(false);
+							checkConnectionButton.setText("Offline");
+						}
+					});
+				}
+			});
+			addActor(checkConnectionButton);
+
+			registerButton = new TextButton("Register Online", skin);
+			registerButton.addListener(new ClickListener() {
+				
+				@Override
+				public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+					buttonPressed = 0;
+					return true;
+				}
+				
+				@Override
+				public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+					buttonPressed = -1;
+					registerButton.setChecked(true);
+				}
+				
+				/*@Override
+				public void clicked(InputEvent event, float x, float y) {
+					registerButton.setChecked(false);
+					HttpRequest req = new HttpRequest(HttpMethods.GET);
+					req.setUrl("http://www.nexus1492.eu/boatlogs/getRegisterText.php");
+					Gdx.net.sendHttpRequest(req, new HttpResponseListener() {
+						@Override
+						public void handleHttpResponse(final HttpResponse httpResponse) {
+							registerStage.update(httpResponse.getResultAsString());
+							switchStages();
+						}
+
+						@Override
+						public void failed(Throwable t) {
+							t.printStackTrace();
+						}
+
+						@Override
+						public void cancelled() {
+						}
+						
+					});
+				}*/
+			});
+			registerButton.setChecked(true);
+			//registerButton.setTouchable(Touchable.disabled);
+			
+			RYBButton clearDataButton = new RYBButton("Clear All Data", skin);
+
+			masterTable.add(nexusActor).width(nexusLogo.getWidth()).height(nexusLogo.getHeight()).row();
+			
+			masterTable.add(playButton.padLeft(5f).padRight(5f)).pad(5f).width(nexusLogo.getWidth()).row();
+			//masterTable.add(clearDataButton.padLeft(5f).padRight(5f)).pad(5f).width(nexusLogo.getWidth()).row();
+			masterTable.add(registerButton.padLeft(5f).padRight(5f)).pad(5f).width(nexusLogo.getWidth());
+			
+			masterTable.setPosition(getWidth() / 2, getHeight() / 2);
+			addActor(masterTable);
+
+			fireButton(checkConnectionButton);
+		}
+		
+		@Override
+		public void act(float delta) {
+			if (buttonPressed >= 0) {
+				buttonPressed += delta;
+			} 
+			if (buttonPressed > 5f) {
+				buttonPressed = -1;
+				Settings.game.setScreen(new LoadingScreen());
+			}
+			super.act(delta);
+		}
+
+		@Override
+		public void draw() {
+			super.draw();
+		}
 	}
 	
-	public class NexusActor extends Actor {
+	public class ClearDataStage extends RYBStage { // TODO actually should be able to remove all data onclick...
+		public ClearDataStage() {
+			RYBButton okButton = new RYBButton("OK", skin);
+			RYBButton cancelButton = new RYBButton("Cancel", skin);
+		}
+	}
+
+	public class RegisterStage extends RYBStage {
+		String emailString = "";
+		TextButton textField;
+
+		public RegisterStage() {
+			super();
+			final String email = Settings.userData.getString("UserMail", null);
+			Table mastertable = new Table();
+			
+			if (email != null)
+				emailString = "You have currently registered the following email adress: " + email +".\n"
+						+ "By accepting again and entering a new email adress, this value will be overwritten.";
+			textField = new TextField(getWidth() * 0.875f, getHeight() * 0.875f);
+			
+			final TextButton declineButton = new RYBButton(email == null ? "Decline" : "Back", skin);
+			declineButton.addListener(new ClickListener() {
+				@Override
+				public void clicked(InputEvent event, float x, float y) {
+					declineButton.setChecked(false);
+					switchStages();
+				}
+			});
+			
+			final TextButton acceptButton = new RYBButton("Accept", skin);
+			acceptButton.addListener(new ClickListener() {
+				@Override
+				public void clicked(InputEvent event, float x, float y) {
+					acceptButton.setChecked(false);
+					Gdx.input.getTextInput(new TextInputListener() {
+						@Override
+						public void input(String text) {
+							if (text.matches(".+@.+\\..+")) { // f@o.o
+								HttpPoster.registerEmail(text.replace("\r", "").replace("\n", ""));
+								Settings.userData.putString("UserMail", text);
+								Settings.userData.flush();
+								emailString = "You have currently registered the following email adress: "
+										+ text +".\nBy accepting again and entering a new email adress, "
+										+ "this value will be overwritten.";
+								switchStages();
+								declineButton.setText("Back");
+							} else
+								canceled();
+						}
+
+						@Override
+						public void canceled() {
+						}
+						
+					}, "Enter your email adress", "", "john@doe.com");
+				}
+			});
+			
+			mastertable.add(textField.pad(5f)).width(textField.getWidth())
+				.height(textField.getHeight()).pad(5f).colspan(2);
+			mastertable.row();
+			mastertable.add(acceptButton.padLeft(5f).padRight(5f)).padRight(25f).right();
+			mastertable.add(declineButton.padLeft(5f).padRight(5f)).padLeft(25f).left();
+			
+			mastertable.center().setPosition(getWidth()/2, getHeight()/2);
+			addActor(mastertable);
+		}
+		
+		public void update(String text) {
+			emailString = "";
+			textField.setText(text + emailString);
+		}
+	}
+
+	protected class NexusActor extends Actor {
 		float alpha = 0;
 		float width = nexusLogo.getWidth();
 		float height = nexusLogo.getHeight();
-		
+
 		@Override
 		public void draw(Batch batch, float parentAlpha) {
 			batch.setColor(alpha, alpha, alpha, alpha);
 			batch.draw(nexusLogo, this.getX(), this.getY());
 			batch.setColor(Color.WHITE);
 		}
-		
+
 		public void update(float alpha) {
 			this.alpha = alpha;
 		}

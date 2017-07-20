@@ -4,23 +4,18 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.TextInputListener;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL30;
-import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
-import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.rowyerboat.helper.AssetLoader;
+import com.rowyerboat.helper.HttpPoster;
 import com.rowyerboat.helper.Settings;
 
 /**
@@ -40,31 +35,33 @@ public class IntroScreen implements Screen {
 	
 	Stage stage;
 	
-	public IntroScreen(Game g) {
-		game = g;
+	public IntroScreen() {
+		game = Settings.game;
 		
 		batch = new SpriteBatch();
-		font = AssetLoader.font;
+		font = AssetLoader.getFont();
 		
-		stage = new Stage(new FitViewport(Settings.width, Settings.height), batch);
-		Image logo = new Image(AssetLoader.nexusLogo);
-		//logo.setColor(0.5f, 0.5f, 0.5f, 0.5f);
-		logo.setPosition((stage.getWidth() - logo.getWidth())/2, (stage.getHeight() - logo.getHeight())* 0.67f);
-		stage.addActor(logo);
+		Table masterTable = new Table();
 		
-		String str = "This game was developed as part of the ERC-Synergy Project NEXUS1492.\n"
-				+ "By using it you agree that your User-ID and the tracks of your boat are recorded \n"
+		stage = new RYBStage(new FitViewport(Settings.width, Settings.height), batch);
+		Image logo = new Image(new Texture(Gdx.files.internal("nexusLogo.png")));
+		masterTable.add(logo).width(logo.getWidth()).height(logo.getHeight()).row();
+		
+		String str = "This game was developed as part of the ERC-Synergy Project NEXUS1492. "
+				+ "By using it you agree that your User-ID and the tracks of your boat are recorded "
 				+ "and used for research purposes within the project.\n"
+				+ "Music courtesy of Boynayel.\n"
 				+ "Tap to agree.";
 		TextButtonStyle tbs = new TextButtonStyle();
-		tbs.font = AssetLoader.font;
+		tbs.font = AssetLoader.getFont();
 		
 		TextButton text = new TextButton(str, tbs);
 		text.bottom().right();
 		text.getLabel().setWrap(true);
-		text.setPosition((stage.getWidth() - text.getWidth())/2, (logo.getY() - text.getHeight()));
-		stage.addActor(text);
-		
+		masterTable.add(text).width(stage.getWidth() - 100);
+		masterTable.center().setPosition(stage.getWidth()/2, stage.getHeight()/2);
+
+		stage.addActor(masterTable);
 		Gdx.input.setCatchBackKey(true);
 	}
 	
@@ -72,10 +69,10 @@ public class IntroScreen implements Screen {
 	public void render(float delta) {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL30.GL_COLOR_BUFFER_BIT);
+		stage.draw();
 
 		switch (state){
 		case 0: //showDisclaimer
-			stage.draw();
 			if (Gdx.input.justTouched()) state++;
 			if (Gdx.input.justTouched() && !Settings.userID.equals(""))
 				state = 4;
@@ -87,13 +84,12 @@ public class IntroScreen implements Screen {
 			break;
 		case 2: //do nothing and wait for input
 			break;
-		case 3: //show tutorial
+		case 3: //blackout the screen
+			Gdx.gl.glClear(GL30.GL_COLOR_BUFFER_BIT);
 			state++;
-			if (!Settings.userData.getBoolean("tutorialDisplayed"))
-				game.setScreen(new TutorialScreen(game, this));
 			break;
-		case 4: //switch to game
-			game.setScreen(new MainScreen(game));
+		case 4: //switch to loading
+			Settings.game.init();
 			break;
 		}
 	}
@@ -121,7 +117,7 @@ public class IntroScreen implements Screen {
 
 	@Override
 	public void dispose() {
-		//batch.dispose();
+		stage.dispose();
 	}
 
 	public class MyTextInputListener implements TextInputListener {
@@ -131,6 +127,7 @@ public class IntroScreen implements Screen {
 				canceled();
 			else {
 				Gdx.app.log("UserID", text);
+				text = text.trim();
 				Settings.userID = text;
 				Settings.userData.putString("userID", text);
 				Settings.userData.flush();
